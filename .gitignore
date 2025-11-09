@@ -1,0 +1,14 @@
+# Ignore large data and results
+data/
+results/
+logs/
+*.pth
+*.pt
+*.h5
+*.zip
+*.npy
+*.avi
+*.mp4
+__pycache__/
+.DS_Store
+.ipynb_checkpoints/
