@@ -1,0 +1,23 @@
+dataset:
+  val_split: "data/splits/UCF101/UCF101_val_list.txt"
+  clip_len: 16
+  image_size: 112
+  num_classes: 101
+
+dataloader:
+  batch_size: 16
+  num_workers: 8
+
+model:
+  backbone: "mobilevit_s"
+  finetune_checkpoint: "results/finetune/finetune_best.pth"
+
+feature_privacy:
+  sigma_values: [0.0, 0.05, 0.1, 0.2, 0.4] # Gaussian noise scale
+  mask_ratio: 0.0 # optional feature masking
+  measure_flr: true
+  measure_entropy: true
+
+output:
+  save_dir: "results/privacy/feature"
+  summary_csv: "privacy_feature_summary.csv"
