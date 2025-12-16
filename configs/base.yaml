@@ -1,0 +1,4 @@
+dataset:
+  backend: "lazy" # lazy | clip
+  clip_len: 16
+  stride: 8

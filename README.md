@@ -106,8 +106,8 @@ results/figures/
 ## Estimated Resource Plan
 | Task                     | GPU             | Runtime | Cost (Vast.ai / RunPod) |
 | ------------------------ | --------------- | ------- | ----------------------- |
-| SSL Pretraining          | RTX 3090 / A100 | 3–5 hrs | $2–3                    |
-| Fine-tuning              | RTX 3090        | 2 hrs   | $1.5                    |
+| SSL Pretraining          | RTX 4090        | 3–5 hrs | $2–3                    |
+| Fine-tuning              | RTX 4090        | 2 hrs   | $1.5                    |
 | Dynamic Inference        | L4 / T4         | 1 hr    | $0.7                    |
 | Privacy (Visual/Feature) | T4 / 3090       | 1–2 hrs | $0.8                    |
 | Federated Simulation     | A4000           | 2 hrs   | $1.5                    |
