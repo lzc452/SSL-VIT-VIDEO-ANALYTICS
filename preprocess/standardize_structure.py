@@ -125,7 +125,7 @@ def generate_class_index(root):
 # Main
 # -------------------------------------------
 if __name__ == "__main__":
-    ROOT = "data"
+    ROOT = "dataset"
 
     print("==========================================")
     print(" Standardizing Dataset Structures (Parallel)")
