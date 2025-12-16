@@ -1,117 +1,86 @@
-import os
+import argparse
 import cv2
-from tqdm import tqdm
 import multiprocessing as mp
+from pathlib import Path
+from tqdm import tqdm
 
-# -------------------------------------------
-# Configuration
-# -------------------------------------------
-DATA_ROOT = "data"
-FRAME_INTERVAL = 2          # 每隔几帧提取一帧（2 表示隔帧采样）
-RESIZE_SHAPE = (112, 112)   # 输出帧分辨率
-NUM_WORKERS = max(1, mp.cpu_count() // 2)
 
-# -------------------------------------------
-# Extract frames from one video
-# -------------------------------------------
-def extract_frames_from_video(args):
-    video_path, output_dir = args
-    try:
-        cap = cv2.VideoCapture(video_path)
-        if not cap.isOpened():
-            return f"[Error] Cannot open {video_path}"
-        
-        os.makedirs(output_dir, exist_ok=True)
-        frame_idx = 0
-        saved_idx = 0
+def extract_one_video(args):
+    video_path, out_dir, size = args
+    video_path = Path(video_path)
+    out_dir = Path(out_dir)
 
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-            if frame_idx % FRAME_INTERVAL == 0:
-                frame = cv2.resize(frame, RESIZE_SHAPE)
-                frame_name = f"frame_{saved_idx:05d}.jpg"
-                cv2.imwrite(os.path.join(output_dir, frame_name), frame)
-                saved_idx += 1
-            frame_idx += 1
+    if out_dir.exists() and any(out_dir.iterdir()):
+        return "[INFO] skip existing", str(video_path)
 
-        cap.release()
-        return f"[OK] {os.path.basename(video_path)} ({saved_idx} frames)"
-    except Exception as e:
-        return f"[Error] {video_path}: {e}"
+    out_dir.mkdir(parents=True, exist_ok=True)
 
-# -------------------------------------------
-# Process one dataset
-# -------------------------------------------
-def process_dataset(dataset_name, is_test=False):
-    input_root = os.path.join(DATA_ROOT, dataset_name)
-    output_root = os.path.join(DATA_ROOT, f"{dataset_name}_frames")
+    cap = cv2.VideoCapture(str(video_path))
+    if not cap.isOpened():
+        return "[ERROR] cannot open", str(video_path)
 
-    if not os.path.exists(input_root):
-        print(f"[Skip] {dataset_name} not found.")
-        return
+    idx = 0
+    success = True
 
-    print(f"\n[Dataset] {dataset_name}")
-    print(f" Input: {input_root}")
-    print(f" Output: {output_root}\n")
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
 
-    video_tasks = []
-    def process_dir(input_dir_list): 
-        # 遍历每个类别
-        for cls in input_dir_list:
-            cls_path = os.path.join(input_root, cls)
-            if not os.path.isdir(cls_path):
-                continue
+        try:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame = cv2.resize(frame, (size, size))
+        except Exception:
+            success = False
+            break
 
-            # 遍历该类下的视频
-            for vid in sorted(os.listdir(cls_path)):
-                if not vid.lower().endswith((".mp4", ".avi")):
-                    continue
-                video_path = os.path.join(cls_path, vid)
-                vid_name = os.path.splitext(vid)[0]
-                save_dir = os.path.join(output_root, cls, vid_name)
-                if os.path.exists(save_dir) and len(os.listdir(save_dir)) > 0:
-                    continue  # 已存在跳过
-                video_tasks.append((video_path, save_dir))
-    # 如果is_test 为True，只处理测试集的前3个类别
-    if is_test:
-        process_dir(sorted(os.listdir(input_root))[:3])
-    else:
-        process_dir(sorted(os.listdir(input_root)))
-        
-    if not video_tasks:
-        print(f"[Info] No new videos to process for {dataset_name}.")
-        return
+        fname = out_dir / f"{idx:06d}.jpg"
+        cv2.imwrite(str(fname), frame)
+        idx += 1
 
-    print(f"[Info] Found {len(video_tasks)} videos in {dataset_name}. Start extraction...")
+    cap.release()
 
-    # 多进程处理
-    with mp.Pool(processes=NUM_WORKERS) as pool:
-        results = list(tqdm(pool.imap(extract_frames_from_video, video_tasks),
-                            total=len(video_tasks), ncols=80))
+    if idx == 0 or not success:
+        # cleanup
+        for f in out_dir.glob("*.jpg"):
+            f.unlink()
+        out_dir.rmdir()
+        return "[ERROR] failed extract", str(video_path)
 
-    # 输出统计结果
-    ok = sum(1 for r in results if r.startswith("[OK]"))
-    err = sum(1 for r in results if r.startswith("[Error]"))
-    print(f"\n[Success] Done {dataset_name}: {ok} succeeded, {err} failed.\n")
+    return "[INFO] done", f"{video_path} ({idx} frames)"
 
-# -------------------------------------------
-# Main
-# -------------------------------------------
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--video_root", type=str, required=True,
+                        help="e.g. data/UCF101")
+    parser.add_argument("--output_root", type=str, required=True,
+                        help="e.g. data/UCF101_frames")
+    parser.add_argument("--image_size", type=int, default=112)
+    parser.add_argument("--workers", type=int, default=4)
+    args = parser.parse_args()
+
+    video_root = Path(args.video_root)
+    output_root = Path(args.output_root)
+
+    jobs = []
+
+    for cls_dir in sorted(video_root.iterdir()):
+        if not cls_dir.is_dir():
+            continue
+        for vid in cls_dir.glob("*.mp4"):
+            out_dir = output_root / cls_dir.name / vid.stem
+            jobs.append((vid, out_dir, args.image_size))
+
+    print(f"[INFO] Total videos: {len(jobs)}")
+
+    with mp.Pool(args.workers) as pool:
+        for msg, info in tqdm(pool.imap_unordered(extract_one_video, jobs), total=len(jobs)):
+            if msg.startswith("[ERROR]"):
+                print(msg, info)
+
+    print("[INFO] extract_frames finished")
+
+
 if __name__ == "__main__":
-    print("==========================================")
-    print(" Extracting Frames from All Datasets ")
-    print("==========================================")
-
-    # DATASETS = ["UCF101", "hmdb51", "FaceForensics", "Kinetics-400-Tiny"]
-    # for ds in DATASETS:
-    #     process_dataset(ds)
-    # process_dataset("UCF101")
-    # process_dataset("hmdb51")
-    # process_dataset("FaceForensics")
-    process_dataset("Kinetics-400-Tiny")
-    # 先拿Kinetics-400-Tiny来试试
-    # process_dataset("Kinetics-400-Tiny", is_test=True)
-
-    print("\n[Success] All datasets processed successfully!")
+    main()
