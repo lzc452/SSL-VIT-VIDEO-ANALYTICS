@@ -1,0 +1,35 @@
+dataset:
+  name: UCF101
+  split: UCF101_val.txt
+  num_classes: 101
+
+model:
+  embed_dim: 256
+  finetune_ckpt: results/finetune/finetune_best.pth
+
+visual_privacy:
+  enabled: true
+  detector: yunet
+  yunet_model: assets/yunet.onnx
+  conf_threshold: 0.6
+  nms_threshold: 0.3
+  method: face_blur
+  blur_kernel: 31
+  overwrite: false
+  output_suffix: "_frames_privacy"
+
+feature_privacy:
+  enabled: true
+  noise_sigmas: [0.0, 0.05, 0.1, 0.2]
+  mask_ratios: [0.0, 0.2, 0.4]
+  compute_entropy: true
+  compute_flr: true
+  attacker_epochs: 10
+  attacker_lr: 1e-3
+
+runtime:
+  batch_size: 8
+  amp: true
+
+output:
+  save_dir: results/privacy

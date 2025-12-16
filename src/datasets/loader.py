@@ -1,91 +1,111 @@
-import os
-import numpy as np
+import random
 from pathlib import Path
 
+import cv2
 import torch
 from torch.utils.data import Dataset
 
 from datasets.transforms import build_transforms
 
-# 加载 split 文件 <clip_path> <label>
-# 返回 clip 的 tensor [C, T, H, W]
-# 支持 mode="ssl" 与 mode="supervised"
-# 支持 transforms支持转变
-# 兼容 numpy .npy clip 文件（你 preprocess 会输出 .npy clips）
 
-class VideoClipDataset(Dataset):
+# Dataset 行为
+# 每次 __getitem__：
+# 从该 video 的 frame 文件夹中
+# Lazy 采样 T 帧（默认 16）
+# 支持 stride
+# resize → normalize
+# 不提前加载全部帧
+# 不生成 clip 文件
+# SSL / supervised 两种模式
+
+class LazyFrameDataset(Dataset):
     """
-    读取生成好的 clip 数组 (.npy)，每个 clip 是 [T, H, W, C]
-    输出为 [C, T, H, W]，适配模型计算流程。
-
-    模式:
-      mode="ssl"  -> 返回 clips
-      mode="supervised" -> 返回 (clips, label)
+    Frame-Lazy Dataset:
+    - Input: frame folder of a video
+    - On-the-fly sampling frames to form a clip
     """
 
-    def __init__(self, split_file, mode="ssl", clip_len=16, image_size=112):
-        super().__init__()
-        self.split_file = Path(split_file)
+    def __init__(
+        self,
+        split_file,
+        mode="ssl",
+        clip_len=16,
+        stride=2,
+        image_size=112,
+        seed=42,
+    ):
+        self.split_file = split_file
         self.mode = mode
         self.clip_len = clip_len
+        self.stride = stride
         self.image_size = image_size
-
-        if not self.split_file.exists():
-            raise FileNotFoundError(f"[ERROR] split file not found: {self.split_file}")
-
-        with open(self.split_file, "r") as f:
-            lines = [line.strip() for line in f if line.strip()]
+        self.seed = seed
 
         self.samples = []
-        for line in lines:
-            parts = line.split()
-            if len(parts) < 2:
-                continue
-            clip_path = parts[0]
-            label = int(parts[1])
-            self.samples.append((clip_path, label))
+        with open(split_file, "r") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                path, label = line.split()
+                self.samples.append((Path(path), int(label)))
 
         if len(self.samples) == 0:
-            print(f"[ERROR] No valid samples found in split file: {self.split_file}")
+            raise RuntimeError("[ERROR] Empty split file")
 
         self.transforms = build_transforms(image_size)
+
+        print(f"[INFO] Loaded {len(self.samples)} samples from {split_file}")
+        print(f"[INFO] Dataset mode: {self.mode}")
+        print(f"[INFO] Clip length: {self.clip_len}, Stride: {self.stride}")
 
     def __len__(self):
         return len(self.samples)
 
-    def _load_clip(self, clip_path):
+    def _sample_frame_indices(self, num_frames, index):
         """
-        clip_path: path/to/xxx.npy
-        .npy 内容为 [T, H, W, C]
+        Deterministic but diverse sampling:
+        each sample has its own random offset based on index
         """
-        arr = np.load(clip_path)  # [T, H, W, C]
-        if arr.ndim != 4:
-            raise ValueError(f"[ERROR] clip shape must be [T,H,W,C], but got {arr.shape}")
+        rng = random.Random(self.seed + index)
 
-        T, H, W, C = arr.shape
-        if T != self.clip_len:
-            print(f"[INFO] Warning: Expected {self.clip_len} frames, found {T}. Auto-adjusting.")
-            if T > self.clip_len:
-                arr = arr[: self.clip_len]
-            else:
-                pad = np.repeat(arr[-1:], repeats=(self.clip_len - T), axis=0)
-                arr = np.concatenate([arr, pad], axis=0)
+        max_start = max(0, num_frames - self.clip_len * self.stride)
+        start = rng.randint(0, max_start) if max_start > 0 else 0
 
-        return arr
+        indices = [start + i * self.stride for i in range(self.clip_len)]
+        return indices
+
+    def _load_clip(self, frame_dir, index):
+        frames = sorted(frame_dir.glob("*.jpg"))
+        num_frames = len(frames)
+
+        if num_frames == 0:
+            raise RuntimeError(f"[ERROR] No frames found in {frame_dir}")
+
+        indices = self._sample_frame_indices(num_frames, index)
+
+        clip = []
+        for idx in indices:
+            idx = min(idx, num_frames - 1)
+            img_path = frames[idx]
+
+            img = cv2.imread(str(img_path))
+            if img is None:
+                raise RuntimeError(f"[ERROR] Failed to read image {img_path}")
+
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img = self.transforms(img)
+            clip.append(img)
+
+        clip = torch.stack(clip, dim=1)  # [C, T, H, W]
+        return clip
 
     def __getitem__(self, index):
-        clip_path, label = self.samples[index]
-        clip_np = self._load_clip(clip_path)
+        frame_dir, label = self.samples[index]
 
-        frames = []
-        for t in range(self.clip_len):
-            img = clip_np[t]  # [H, W, C]
-            img_tensor = self.transforms(img)  # [C, H, W]
-            frames.append(img_tensor)
-
-        clip_tensor = torch.stack(frames, dim=1)  # [C, T, H, W]
+        clip = self._load_clip(frame_dir, index)
 
         if self.mode == "ssl":
-            return clip_tensor
+            return clip
         else:
-            return clip_tensor, label
+            return clip, label

@@ -1,33 +1,29 @@
 dataset:
-  train_split: "data/splits/UCF101/UCF101_train_list.txt"
-  clip_len: 16
-  image_size: 112
-
-dataloader:
-  batch_size: 24
-  num_workers: 8
-  shuffle: true
-
-optimizer:
-  name: "adamw"
-  lr: 0.0003
-  weight_decay: 0.05
-
-scheduler:
-  name: "cosine"
-  warmup_epochs: 5
+  name: UCF101
+  train_split: UCF101_train.txt
+  val_split: UCF101_val.txt
 
 training:
   epochs: 50
-  amp: true
+  batch_size: 24
+  learning_rate: 3e-4
+  weight_decay: 0.05
   log_interval: 20
-  save_interval: 5
-  output_dir: "results/main_ssl"
-  seed: 42
+  amp: true
+  save_dir: results/main_ssl
+  save_every: 5
 
 model:
-  backbone: "mobilevit_s"
-  ssl_tasks:
-    mask_ratio: 0.7 # 用于MFR中选择frames
-    enable_mfr: true # Masked Frame Reconstruction (feature-space)
-    enable_top: true # Temporal Order Prediction (pair-wise order)
+  backbone: mobilevit_s
+  embed_dim: 256
+  temporal_layers: 4
+  temporal_heads: 4
+
+ssl_objectives:
+  mask_ratio: 0.7
+  lambda_mfm: 1.0
+  lambda_top: 0.2
+  top_shuffle_prob: 0.5
+
+optimizer:
+  type: adamw

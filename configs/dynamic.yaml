@@ -1,0 +1,30 @@
+# configs/dynamic.yaml
+
+dataset:
+  name: UCF101
+  split: UCF101_val.txt
+  num_classes: 101
+
+model:
+  embed_dim: 256
+  finetune_ckpt: results/finetune/finetune_best.pth # 你需要改成真实存在的路径
+
+dynamic:
+  mode: early_exit # early_exit | frame_gating | hybrid
+  confidence_thresholds: [0.50, 0.60, 0.70, 0.80, 0.90]
+  min_frames: 4
+  max_frames: 16
+  frame_step: 1 # 每次增加多少帧（early exit 时）
+
+  gating_topk_list: [4, 6, 8, 10, 12, 16] # frame_gating 模式用
+  gating_score: motion # motion | random
+
+runtime:
+  batch_size: 8
+  num_warmup: 10
+  num_measure: 50
+  amp: true
+
+output:
+  save_dir: results/dynamic
+  save_csv: true

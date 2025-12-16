@@ -1,3 +1,11 @@
+<!-- MP4
+ → standardize_structure.py     （avi → mp4）
+ → extract_frames.py            （video → frame folder）
+ → generate_splits_lazy.py      （video → frame folder）
+ → LazyFrameDataset             （on-the-fly sampling）
+ → SSL / Finetune / Dynamic / Privacy / Federated
+ -->
+
 ## Original Dataset Structure
 ```bash
 data/

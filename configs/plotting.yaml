@@ -1,0 +1,36 @@
+# configs/plotting.yaml
+
+inputs:
+  dynamic_early_exit_csv: results/dynamic/early_exit_results.csv
+  dynamic_frame_gating_csv: results/dynamic/frame_gating_results.csv
+
+  privacy_visual_csv: results/privacy/visual_privacy_summary.csv
+  privacy_feature_csv: results/privacy/feature_privacy_results.csv
+
+  federated_csv: results/privacy/federated/fed_summary.csv
+
+outputs:
+  summary_csv: results/summary.csv
+  figures_dir: results/figures
+
+figures:
+  fig17_dynamic_tradeoff: true
+  fig18_feature_privacy_tradeoff: true
+  fig19_federated_tradeoff: true
+  fig20_joint_pareto: true
+
+joint_score:
+  # 4.5 中的“联合 trade-off score”用来画 Pareto（可解释，且可复现）
+  # score 越低越好（成本越低），accuracy 越高越好
+  # cost = w_lat*norm_latency + w_comm*norm_comm + w_priv*norm_priv
+  weights:
+    w_latency: 0.45
+    w_comm: 0.35
+    w_privacy: 0.20
+
+  privacy_source: feature_flr # feature_flr | visual_per
+  latency_source: early_exit # early_exit | frame_gating
+  comm_source: federated_round # federated_round（按每轮通信）
+
+export:
+  dpi: 200

@@ -1,33 +1,30 @@
+# configs/finetune.yaml
+
 dataset:
-  train_split: "data/splits/UCF101/UCF101_train_list.txt"
-  val_split: "data/splits/UCF101/UCF101_val_list.txt"
-  clip_len: 16
-  image_size: 112
+  name: UCF101
+  train_split: UCF101_train.txt
+  val_split: UCF101_val.txt
   num_classes: 101
-
-dataloader:
-  batch_size: 32
-  num_workers: 8
-  shuffle: true
-
-optimizer:
-  name: "adamw"
-  lr: 0.0001
-  weight_decay: 0.05
-
-scheduler:
-  name: "cosine"
-  warmup_epochs: 3
 
 training:
   epochs: 30
-  amp: true
+  batch_size: 32
+  learning_rate: 1e-4
+  weight_decay: 0.01
   log_interval: 20
-  eval_interval: 1
-  save_interval: 5
-  output_dir: "results/finetune"
-  seed: 42
+  amp: true
 
 model:
-  backbone: "mobilevit_s"
-  ssl_checkpoint: "results/main_ssl/ssl_epoch_50.pth"
+  backbone: mobilevit_s
+  embed_dim: 256
+  pretrained_ssl: results/main_ssl/ssl_epoch_50.pth
+  freeze_backbone: false
+
+optimizer:
+  type: adamw
+
+evaluation:
+  topk: [1, 5]
+
+paths:
+  save_dir: results/finetune

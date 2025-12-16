@@ -1,0 +1,33 @@
+# configs/federated.yaml
+
+dataset:
+  name: UCF101
+  train_split: UCF101_train.txt
+  val_split: UCF101_val.txt
+  num_classes: 101
+
+model:
+  embed_dim: 256
+  init_ckpt: results/finetune/finetune_best.pth # 可选：用已finetune权重初始化全局模型；不存在则随机初始化
+
+federated:
+  num_clients: 5
+  rounds: 10
+  client_fraction: 1.0 # 每轮参与客户端比例（1.0=全部）
+  local_epochs: 1
+  batch_size: 16
+  lr: 3e-4
+  weight_decay: 0.01
+
+  non_iid:
+    enabled: true
+    strategy: class_shard # class_shard | dirichlet（先实现 class_shard）
+    shards_per_client: 6 # 每个客户端拿到多少个类别分片（越小越 non-IID）
+    min_samples_per_client: 200
+
+runtime:
+  amp: true
+
+output:
+  save_dir: results/privacy/federated
+  split_prefix: fed # 生成 split 文件名的前缀
