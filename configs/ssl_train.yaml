@@ -5,8 +5,8 @@ dataset:
 
 training:
   epochs: 50
-  batch_size: 24
-  learning_rate: 3e-4
+  batch_size: 96
+  learning_rate: 0.0005
   weight_decay: 0.05
   log_interval: 20
   amp: true

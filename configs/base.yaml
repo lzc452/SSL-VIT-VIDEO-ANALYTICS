@@ -4,13 +4,13 @@ seed: 42
 
 device:
   use_cuda: true
-  num_workers: 8
+  num_workers: 12
   pin_memory: true
 
 dataset:
   backend: frame_lazy
   clip_len: 16
-  stride: 2
+  stride: 8
   image_size: 112
 
 paths:

@@ -80,7 +80,8 @@ class LazyFrameDataset(Dataset):
         num_frames = len(frames)
 
         if num_frames == 0:
-            raise RuntimeError(f"[ERROR] No frames found in {frame_dir}")
+            print(f"[ERROR] No frames found in {frame_dir}")
+            return None
 
         indices = self._sample_frame_indices(num_frames, index)
 
@@ -104,6 +105,11 @@ class LazyFrameDataset(Dataset):
         frame_dir, label = self.samples[index]
 
         clip = self._load_clip(frame_dir, index)
+
+        if clip == None:
+            # 随机重采一个 index
+            new_index = random.randint(0, len(self.samples) - 1)
+            return self.__getitem__(new_index)
 
         if self.mode == "ssl":
             return clip
