@@ -1,106 +1,170 @@
-# src/utils/env_check.py
 import os
 import sys
 import platform
 import subprocess
-import importlib
-from datetime import datetime
 from pathlib import Path
+from datetime import datetime
 
-REPORT_PATH = Path("logs/env_report.txt")
-REQUIREMENT_KEYS = [
-    "torch", "torchvision", "timm", "opencv-python", "ffmpeg-python",
-    "pandas", "tqdm", "pyyaml", "matplotlib", "seaborn",
-    "flwr", "grpcio", "tensorboard", "plotly", "insightface",
-    "mediapipe", "scikit-learn", "scikit-image"
-]
+
+def _run_cmd(cmd):
+    try:
+        out = subprocess.check_output(
+            cmd, stderr=subprocess.STDOUT, shell=True, text=True
+        )
+        return out.strip()
+    except Exception as e:
+        return None
+
 
 def check_python():
-    return f"{platform.python_version()} ({platform.system()} {platform.release()})"
+    info = {}
+    info["python_version"] = sys.version.replace("\n", " ")
+    info["executable"] = sys.executable
+    return info
 
-def check_cuda():
+
+def check_os():
+    info = {}
+    info["platform"] = platform.platform()
+    info["system"] = platform.system()
+    info["release"] = platform.release()
+    info["machine"] = platform.machine()
+    return info
+
+
+def check_cuda_torch():
+    info = {}
     try:
         import torch
-        cuda_available = torch.cuda.is_available()
-        device_count = torch.cuda.device_count()
-        device_name = torch.cuda.get_device_name(0) if cuda_available else "N/A"
-        cudnn = torch.backends.cudnn.version()
-        return {
-            "torch_version": torch.__version__,
-            "cuda_available": cuda_available,
-            "device_count": device_count,
-            "device_name": device_name,
-            "cudnn_version": cudnn
-        }
+        info["torch_version"] = torch.__version__
+        info["cuda_available"] = torch.cuda.is_available()
+        info["cuda_version"] = torch.version.cuda
+        info["cudnn_version"] = torch.backends.cudnn.version()
+        if torch.cuda.is_available():
+            info["gpu_count"] = torch.cuda.device_count()
+            gpus = []
+            for i in range(torch.cuda.device_count()):
+                gpus.append(torch.cuda.get_device_name(i))
+            info["gpu_names"] = gpus
+        else:
+            info["gpu_count"] = 0
+            info["gpu_names"] = []
     except Exception as e:
-        return {"error": str(e)}
+        info["error"] = str(e)
+    return info
+
 
 def check_ffmpeg():
-    try:
-        result = subprocess.run(["ffmpeg", "-version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        if result.returncode == 0:
-            first_line = result.stdout.split("\n")[0]
-            return f"Available {first_line}"
-        else:
-            return f"[Warning] ffmpeg not detected (return code {result.returncode})"
-    except FileNotFoundError:
-        return "[Error] ffmpeg not found in PATH"
+    info = {}
+    ver = _run_cmd("ffmpeg -version")
+    if ver is None:
+        info["available"] = False
+    else:
+        info["available"] = True
+        info["version"] = ver.splitlines()[0]
+    return info
 
-def check_package(pkg):
-    try:
-        module = importlib.import_module(pkg.split("==")[0])
-        version = getattr(module, "__version__", "unknown")
-        return f"{pkg}: {version}"
-    except Exception:
-        return f"{pkg}: not installed"
+
+def check_packages():
+    pkgs = [
+        "numpy",
+        "scipy",
+        "torch",
+        "torchvision",
+        "timm",
+        "opencv-python-headless",
+        "cv2",
+        "yaml",
+        "pandas",
+        "matplotlib",
+        "sklearn",
+        "einops",
+        "tqdm",
+    ]
+
+    results = {}
+    for p in pkgs:
+        try:
+            if p == "cv2":
+                import cv2
+                results["cv2"] = cv2.__version__
+            elif p == "yaml":
+                import yaml
+                results["pyyaml"] = yaml.__version__
+            elif p == "sklearn":
+                import sklearn
+                results["scikit-learn"] = sklearn.__version__
+            else:
+                mod = __import__(p.replace("-", "_"))
+                results[p] = getattr(mod, "__version__", "unknown")
+        except Exception:
+            results[p] = None
+    return results
+
+
+def format_section(title, kv):
+    lines = []
+    lines.append(f"== {title} ==")
+    for k, v in kv.items():
+        lines.append(f"{k}: {v}")
+    lines.append("")
+    return "\n".join(lines)
+
 
 def main():
-    print("\n[Info] Checking environment...\n")
-    REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    log_dir = Path("logs")
+    log_dir.mkdir(parents=True, exist_ok=True)
+    report_path = log_dir / "env_report.txt"
+
     lines = []
-    lines.append(f"Environment Check Report - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    lines.append("=" * 60)
-
-    # Python & System
-    lines.append(f"Python Version : {check_python()}")
-    lines.append(f"Executable Path: {sys.executable}")
+    lines.append("Environment Check Report")
+    lines.append(f"Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    lines.append("=" * 50)
     lines.append("")
 
-    # CUDA / Torch
-    lines.append("CUDA / Torch Information")
-    cuda_info = check_cuda()
-    for k, v in cuda_info.items():
-        lines.append(f"  {k}: {v}")
-    lines.append("")
+    # Python
+    py_info = check_python()
+    print("[INFO] Python version:", py_info["python_version"])
+    lines.append(format_section("Python", py_info))
 
-    # ffmpeg
-    lines.append("FFmpeg")
-    lines.append(f"  {check_ffmpeg()}")
-    lines.append("")
+    # OS
+    os_info = check_os()
+    print("[INFO] OS:", os_info["platform"])
+    lines.append(format_section("Operating System", os_info))
+
+    # Torch / CUDA
+    torch_info = check_cuda_torch()
+    if "error" in torch_info:
+        print("[ERROR] Torch check failed:", torch_info["error"])
+    else:
+        print("[INFO] Torch:", torch_info.get("torch_version", "unknown"))
+        print("[INFO] CUDA available:", torch_info.get("cuda_available", False))
+        if torch_info.get("cuda_available", False):
+            for g in torch_info.get("gpu_names", []):
+                print("[INFO] GPU:", g)
+    lines.append(format_section("PyTorch & CUDA", torch_info))
+
+    # FFmpeg
+    ffmpeg_info = check_ffmpeg()
+    if ffmpeg_info["available"]:
+        print("[INFO] FFmpeg:", ffmpeg_info["version"])
+    else:
+        print("[WARN] FFmpeg not found")
+    lines.append(format_section("FFmpeg", ffmpeg_info))
 
     # Packages
-    lines.append("Package Versions")
-    for pkg in REQUIREMENT_KEYS:
-        lines.append(f"  {check_package(pkg)}")
-    lines.append("")
+    pkg_info = check_packages()
+    print("[INFO] Checking Python packages...")
+    for k, v in pkg_info.items():
+        if v is None:
+            print(f"[WARN] Package missing: {k}")
+        else:
+            print(f"[INFO] {k}: {v}")
+    lines.append(format_section("Python Packages", pkg_info))
 
-    # GPU memory info (optional)
-    try:
-        import torch
-        if torch.cuda.is_available():
-            total = torch.cuda.get_device_properties(0).total_memory / (1024 ** 3)
-            lines.append(f"GPU Memory Total: {total:.2f} GB")
-    except Exception:
-        lines.append("GPU Memory: not available")
+    report_path.write_text("\n".join(lines), encoding="utf-8")
+    print(f"[INFO] Environment report saved to {report_path}")
 
-    lines.append("\n Environment check completed successfully.\n")
-
-    # Save report
-    REPORT_PATH.write_text("\n".join(lines), encoding="utf-8")
-
-    # Print summary
-    print("\n".join(lines[:20]))
-    print(f"...\nReport saved to: {REPORT_PATH.resolve()}\n")
 
 if __name__ == "__main__":
     main()
