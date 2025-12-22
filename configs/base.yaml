@@ -4,7 +4,7 @@ seed: 42
 
 device:
   use_cuda: true
-  num_workers: 12
+  num_workers: 8
   pin_memory: true
 
 dataset:

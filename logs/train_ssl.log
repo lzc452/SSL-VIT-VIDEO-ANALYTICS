@@ -36,3 +36,330 @@
 [INFO] step=20/96 loss=0.2010 mfm=0.0525 top=0.7423
 [INFO] step=40/96 loss=0.1820 mfm=0.0325 top=0.7473
 [INFO] step=60/96 loss=0.1886 mfm=0.0484 top=0.7008
+[INFO] step=80/96 loss=0.2057 mfm=0.0671 top=0.6930
+[INFO] Epoch finished, avg_loss=0.2032, avg_mfm=0.0624, avg_top=0.7042, time=72.3s
+[INFO] Epoch 5/50 started
+[INFO] step=20/96 loss=0.1910 mfm=0.0538 top=0.6859
+[INFO] step=40/96 loss=0.2217 mfm=0.0807 top=0.7051
+[INFO] step=60/96 loss=0.2332 mfm=0.0932 top=0.6999
+[INFO] step=80/96 loss=0.2196 mfm=0.0822 top=0.6868
+[INFO] Epoch finished, avg_loss=0.2133, avg_mfm=0.0733, avg_top=0.7001, time=72.1s
+[INFO] Epoch 6/50 started
+[INFO] step=20/96 loss=0.1743 mfm=0.0340 top=0.7017
+[INFO] step=40/96 loss=0.1861 mfm=0.0445 top=0.7081
+[INFO] step=60/96 loss=0.1830 mfm=0.0437 top=0.6965
+[INFO] step=80/96 loss=0.1876 mfm=0.0472 top=0.7019
+[INFO] Epoch finished, avg_loss=0.1820, avg_mfm=0.0427, avg_top=0.6964, time=74.0s
+[INFO] Epoch 7/50 started
+[INFO] step=20/96 loss=0.1902 mfm=0.0497 top=0.7024
+[INFO] step=40/96 loss=0.1726 mfm=0.0346 top=0.6902
+[INFO] step=60/96 loss=0.1606 mfm=0.0208 top=0.6991
+[INFO] step=80/96 loss=0.1583 mfm=0.0191 top=0.6958
+[INFO] Epoch finished, avg_loss=0.1710, avg_mfm=0.0317, avg_top=0.6966, time=73.3s
+[INFO] Epoch 8/50 started
+[INFO] step=20/96 loss=0.1586 mfm=0.0192 top=0.6969
+[INFO] step=40/96 loss=0.1665 mfm=0.0275 top=0.6946
+[INFO] step=60/96 loss=0.1732 mfm=0.0324 top=0.7038
+[INFO] step=80/96 loss=0.1863 mfm=0.0439 top=0.7122
+[INFO] Epoch finished, avg_loss=0.1719, avg_mfm=0.0322, avg_top=0.6988, time=73.9s
+[INFO] Epoch 9/50 started
+[INFO] step=20/96 loss=0.1699 mfm=0.0326 top=0.6862
+[INFO] step=40/96 loss=0.1696 mfm=0.0280 top=0.7079
+[INFO] step=60/96 loss=0.1670 mfm=0.0267 top=0.7014
+[INFO] step=80/96 loss=0.1820 mfm=0.0386 top=0.7171
+[INFO] Epoch finished, avg_loss=0.1750, avg_mfm=0.0354, avg_top=0.6977, time=73.4s
+[INFO] Epoch 10/50 started
+[INFO] step=20/96 loss=0.1754 mfm=0.0367 top=0.6938
+[INFO] step=40/96 loss=0.1835 mfm=0.0425 top=0.7048
+[INFO] step=60/96 loss=0.1875 mfm=0.0491 top=0.6923
+[INFO] step=80/96 loss=0.1847 mfm=0.0447 top=0.7002
+[INFO] Epoch finished, avg_loss=0.1816, avg_mfm=0.0419, avg_top=0.6984, time=72.2s
+[INFO] Epoch 11/50 started
+[INFO] step=20/96 loss=0.1716 mfm=0.0334 top=0.6908
+[INFO] step=40/96 loss=0.1646 mfm=0.0225 top=0.7106
+[INFO] step=60/96 loss=0.1655 mfm=0.0263 top=0.6962
+[INFO] step=80/96 loss=0.1955 mfm=0.0572 top=0.6913
+[INFO] Epoch finished, avg_loss=0.1782, avg_mfm=0.0389, avg_top=0.6968, time=72.8s
+[INFO] Epoch 12/50 started
+[INFO] step=20/96 loss=0.1712 mfm=0.0323 top=0.6943
+[INFO] step=40/96 loss=0.1684 mfm=0.0254 top=0.7149
+[INFO] step=60/96 loss=0.1702 mfm=0.0286 top=0.7081
+[INFO] step=80/96 loss=0.2029 mfm=0.0630 top=0.6992
+[INFO] Epoch finished, avg_loss=0.1744, avg_mfm=0.0351, avg_top=0.6965, time=72.1s
+[INFO] Epoch 13/50 started
+[INFO] step=20/96 loss=0.1576 mfm=0.0184 top=0.6960
+[INFO] step=40/96 loss=0.1575 mfm=0.0202 top=0.6868
+[INFO] step=60/96 loss=0.1535 mfm=0.0150 top=0.6923
+[INFO] step=80/96 loss=0.1646 mfm=0.0277 top=0.6847
+[INFO] Epoch finished, avg_loss=0.1622, avg_mfm=0.0230, avg_top=0.6955, time=72.6s
+[INFO] Epoch 14/50 started
+[INFO] step=20/96 loss=0.2359 mfm=0.0964 top=0.6973
+[INFO] step=40/96 loss=0.1883 mfm=0.0469 top=0.7068
+[INFO] step=60/96 loss=0.1654 mfm=0.0268 top=0.6927
+[INFO] step=80/96 loss=0.1676 mfm=0.0274 top=0.7012
+[INFO] Epoch finished, avg_loss=0.1822, avg_mfm=0.0428, avg_top=0.6973, time=73.6s
+[INFO] Epoch 15/50 started
+[INFO] step=20/96 loss=0.1771 mfm=0.0374 top=0.6986
+[INFO] step=40/96 loss=0.1764 mfm=0.0376 top=0.6938
+[INFO] step=60/96 loss=0.1718 mfm=0.0339 top=0.6896
+[INFO] step=80/96 loss=0.1692 mfm=0.0290 top=0.7009
+[INFO] Epoch finished, avg_loss=0.1667, avg_mfm=0.0276, avg_top=0.6955, time=72.2s
+[INFO] Epoch 16/50 started
+[INFO] step=20/96 loss=0.1588 mfm=0.0196 top=0.6957
+[INFO] step=40/96 loss=0.1694 mfm=0.0318 top=0.6882
+[INFO] step=60/96 loss=0.1615 mfm=0.0224 top=0.6957
+[INFO] step=80/96 loss=0.1605 mfm=0.0218 top=0.6935
+[INFO] Epoch finished, avg_loss=0.1632, avg_mfm=0.0240, avg_top=0.6962, time=72.7s
+[INFO] Epoch 17/50 started
+[INFO] step=20/96 loss=0.1544 mfm=0.0182 top=0.6812
+[INFO] step=40/96 loss=0.1586 mfm=0.0192 top=0.6966
+[INFO] step=60/96 loss=0.1555 mfm=0.0171 top=0.6920
+[INFO] step=80/96 loss=0.1561 mfm=0.0183 top=0.6891
+[INFO] Epoch finished, avg_loss=0.1578, avg_mfm=0.0189, avg_top=0.6944, time=74.2s
+[INFO] Epoch 18/50 started
+[INFO] step=20/96 loss=0.1563 mfm=0.0183 top=0.6901
+[INFO] step=40/96 loss=0.1612 mfm=0.0230 top=0.6911
+[INFO] step=60/96 loss=0.1568 mfm=0.0176 top=0.6964
+[INFO] step=80/96 loss=0.1565 mfm=0.0184 top=0.6902
+[INFO] Epoch finished, avg_loss=0.1569, avg_mfm=0.0181, avg_top=0.6942, time=72.5s
+[INFO] Epoch 19/50 started
+[INFO] step=20/96 loss=0.1596 mfm=0.0196 top=0.6998
+[INFO] step=40/96 loss=0.1594 mfm=0.0212 top=0.6911
+[INFO] step=60/96 loss=0.1539 mfm=0.0159 top=0.6901
+[INFO] step=80/96 loss=0.1562 mfm=0.0168 top=0.6970
+[INFO] Epoch finished, avg_loss=0.1551, avg_mfm=0.0161, avg_top=0.6947, time=72.5s
+[INFO] Epoch 20/50 started
+[INFO] step=20/96 loss=0.1553 mfm=0.0161 top=0.6957
+[INFO] step=40/96 loss=0.1501 mfm=0.0107 top=0.6969
+[INFO] step=60/96 loss=0.1509 mfm=0.0108 top=0.7003
+[INFO] step=80/96 loss=0.1536 mfm=0.0145 top=0.6952
+[INFO] Epoch finished, avg_loss=0.1537, avg_mfm=0.0147, avg_top=0.6954, time=74.6s
+[INFO] Epoch 21/50 started
+[INFO] step=20/96 loss=0.1539 mfm=0.0130 top=0.7047
+[INFO] step=40/96 loss=0.1537 mfm=0.0144 top=0.6966
+[INFO] step=60/96 loss=0.1545 mfm=0.0138 top=0.7036
+[INFO] step=80/96 loss=0.1523 mfm=0.0123 top=0.7004
+[INFO] Epoch finished, avg_loss=0.1526, avg_mfm=0.0135, avg_top=0.6952, time=74.3s
+[INFO] Epoch 22/50 started
+[INFO] step=20/96 loss=0.1522 mfm=0.0118 top=0.7017
+[INFO] step=40/96 loss=0.1533 mfm=0.0134 top=0.6992
+[INFO] step=60/96 loss=0.1530 mfm=0.0141 top=0.6943
+[INFO] step=80/96 loss=0.1526 mfm=0.0136 top=0.6948
+[INFO] Epoch finished, avg_loss=0.1515, avg_mfm=0.0126, avg_top=0.6944, time=72.5s
+[INFO] Epoch 23/50 started
+[INFO] step=20/96 loss=0.1517 mfm=0.0134 top=0.6914
+[INFO] step=40/96 loss=0.1494 mfm=0.0120 top=0.6870
+[INFO] step=60/96 loss=0.1519 mfm=0.0130 top=0.6946
+[INFO] step=80/96 loss=0.1513 mfm=0.0127 top=0.6930
+[INFO] Epoch finished, avg_loss=0.1510, avg_mfm=0.0122, avg_top=0.6944, time=73.4s
+[INFO] Epoch 24/50 started
+[INFO] step=20/96 loss=0.1504 mfm=0.0103 top=0.7003
+[INFO] step=40/96 loss=0.1531 mfm=0.0149 top=0.6910
+[INFO] step=60/96 loss=0.1486 mfm=0.0114 top=0.6862
+[INFO] step=80/96 loss=0.1488 mfm=0.0119 top=0.6847
+[INFO] Epoch finished, avg_loss=0.1506, avg_mfm=0.0116, avg_top=0.6951, time=74.0s
+[INFO] Epoch 25/50 started
+[INFO] step=20/96 loss=0.1520 mfm=0.0128 top=0.6959
+[INFO] step=40/96 loss=0.1524 mfm=0.0140 top=0.6918
+[INFO] step=60/96 loss=0.1516 mfm=0.0124 top=0.6963
+[INFO] step=80/96 loss=0.1538 mfm=0.0152 top=0.6930
+[INFO] Epoch finished, avg_loss=0.1504, avg_mfm=0.0115, avg_top=0.6947, time=73.7s
+[INFO] Epoch 26/50 started
+[INFO] step=20/96 loss=0.1489 mfm=0.0100 top=0.6947
+[INFO] step=40/96 loss=0.1494 mfm=0.0106 top=0.6936
+[INFO] step=60/96 loss=0.1481 mfm=0.0092 top=0.6944
+[INFO] step=80/96 loss=0.1503 mfm=0.0101 top=0.7008
+[INFO] Epoch finished, avg_loss=0.1501, avg_mfm=0.0112, avg_top=0.6945, time=74.6s
+[INFO] Epoch 27/50 started
+[INFO] step=20/96 loss=0.1490 mfm=0.0096 top=0.6972
+[INFO] step=40/96 loss=0.1489 mfm=0.0097 top=0.6962
+[INFO] step=60/96 loss=0.1528 mfm=0.0127 top=0.7002
+[INFO] step=80/96 loss=0.1534 mfm=0.0113 top=0.7104
+[INFO] Epoch finished, avg_loss=0.1502, avg_mfm=0.0113, avg_top=0.6941, time=73.7s
+[INFO] Epoch 28/50 started
+[INFO] step=20/96 loss=0.1505 mfm=0.0119 top=0.6927
+[INFO] step=40/96 loss=0.1502 mfm=0.0116 top=0.6933
+[INFO] step=60/96 loss=0.1465 mfm=0.0080 top=0.6925
+[INFO] step=80/96 loss=0.1496 mfm=0.0112 top=0.6921
+[INFO] Epoch finished, avg_loss=0.1501, avg_mfm=0.0112, avg_top=0.6944, time=74.4s
+[INFO] Epoch 29/50 started
+[INFO] step=20/96 loss=0.1475 mfm=0.0089 top=0.6934
+[INFO] step=40/96 loss=0.1551 mfm=0.0106 top=0.7225
+[INFO] step=60/96 loss=0.1477 mfm=0.0094 top=0.6914
+[INFO] step=80/96 loss=0.1508 mfm=0.0118 top=0.6952
+[INFO] Epoch finished, avg_loss=0.1490, avg_mfm=0.0100, avg_top=0.6948, time=73.2s
+[INFO] Epoch 30/50 started
+[INFO] step=20/96 loss=0.1486 mfm=0.0098 top=0.6941
+[INFO] step=40/96 loss=0.1510 mfm=0.0115 top=0.6976
+[INFO] step=60/96 loss=0.1527 mfm=0.0129 top=0.6987
+[INFO] step=80/96 loss=0.1463 mfm=0.0090 top=0.6864
+[INFO] Epoch finished, avg_loss=0.1481, avg_mfm=0.0091, avg_top=0.6947, time=72.5s
+[INFO] Epoch 31/50 started
+[INFO] step=20/96 loss=0.1453 mfm=0.0088 top=0.6824
+[INFO] step=40/96 loss=0.1485 mfm=0.0105 top=0.6897
+[INFO] step=60/96 loss=0.1497 mfm=0.0111 top=0.6930
+[INFO] step=80/96 loss=0.1480 mfm=0.0074 top=0.7032
+[INFO] Epoch finished, avg_loss=0.1480, avg_mfm=0.0092, avg_top=0.6944, time=74.2s
+[INFO] Epoch 32/50 started
+[INFO] step=20/96 loss=0.1483 mfm=0.0083 top=0.7002
+[INFO] step=40/96 loss=0.1484 mfm=0.0094 top=0.6952
+[INFO] step=60/96 loss=0.1467 mfm=0.0108 top=0.6795
+[INFO] step=80/96 loss=0.1458 mfm=0.0063 top=0.6973
+[INFO] Epoch finished, avg_loss=0.1481, avg_mfm=0.0094, avg_top=0.6937, time=73.2s
+[INFO] Epoch 33/50 started
+[INFO] step=20/96 loss=0.1475 mfm=0.0093 top=0.6908
+[INFO] step=40/96 loss=0.1457 mfm=0.0069 top=0.6939
+[INFO] step=60/96 loss=0.1456 mfm=0.0071 top=0.6927
+[INFO] step=80/96 loss=0.1474 mfm=0.0074 top=0.6998
+[INFO] Epoch finished, avg_loss=0.1474, avg_mfm=0.0085, avg_top=0.6945, time=73.5s
+[INFO] Epoch 34/50 started
+[INFO] step=20/96 loss=0.1460 mfm=0.0070 top=0.6949
+[INFO] step=40/96 loss=0.1460 mfm=0.0075 top=0.6925
+[INFO] step=60/96 loss=0.1467 mfm=0.0083 top=0.6918
+[INFO] step=80/96 loss=0.1467 mfm=0.0069 top=0.6986
+[INFO] Epoch finished, avg_loss=0.1473, avg_mfm=0.0084, avg_top=0.6948, time=74.0s
+[INFO] Epoch 35/50 started
+[INFO] step=20/96 loss=0.1467 mfm=0.0072 top=0.6972
+[INFO] step=40/96 loss=0.1483 mfm=0.0093 top=0.6951
+[INFO] step=60/96 loss=0.1444 mfm=0.0065 top=0.6896
+[INFO] step=80/96 loss=0.1466 mfm=0.0074 top=0.6963
+[INFO] Epoch finished, avg_loss=0.1466, avg_mfm=0.0079, avg_top=0.6937, time=74.4s
+[INFO] Epoch 36/50 started
+[INFO] step=20/96 loss=0.1453 mfm=0.0070 top=0.6913
+[INFO] step=40/96 loss=0.1466 mfm=0.0082 top=0.6918
+[INFO] step=60/96 loss=0.1496 mfm=0.0101 top=0.6973
+[INFO] step=80/96 loss=0.1473 mfm=0.0087 top=0.6931
+[INFO] Epoch finished, avg_loss=0.1472, avg_mfm=0.0085, avg_top=0.6939, time=73.4s
+[INFO] Epoch 37/50 started
+[INFO] step=20/96 loss=0.1489 mfm=0.0102 top=0.6936
+[INFO] step=40/96 loss=0.1500 mfm=0.0116 top=0.6920
+[INFO] step=60/96 loss=0.1543 mfm=0.0135 top=0.7039
+[INFO] step=80/96 loss=0.1478 mfm=0.0099 top=0.6892
+[INFO] Epoch finished, avg_loss=0.1483, avg_mfm=0.0091, avg_top=0.6958, time=73.7s
+[INFO] Epoch 38/50 started
+[INFO] step=20/96 loss=0.1469 mfm=0.0076 top=0.6965
+[INFO] step=40/96 loss=0.1463 mfm=0.0072 top=0.6957
+[INFO] step=60/96 loss=0.1434 mfm=0.0058 top=0.6882
+[INFO] step=80/96 loss=0.1467 mfm=0.0072 top=0.6974
+[INFO] Epoch finished, avg_loss=0.1464, avg_mfm=0.0076, avg_top=0.6937, time=73.5s
+[INFO] Epoch 39/50 started
+[INFO] step=20/96 loss=0.1456 mfm=0.0075 top=0.6905
+[INFO] step=40/96 loss=0.1444 mfm=0.0055 top=0.6944
+[INFO] step=60/96 loss=0.1483 mfm=0.0096 top=0.6934
+[INFO] step=80/96 loss=0.1444 mfm=0.0060 top=0.6917
+[INFO] Epoch finished, avg_loss=0.1464, avg_mfm=0.0075, avg_top=0.6941, time=73.9s
+[INFO] Epoch 40/50 started
+[INFO] step=20/96 loss=0.1456 mfm=0.0073 top=0.6914
+[INFO] step=40/96 loss=0.1466 mfm=0.0078 top=0.6941
+[INFO] step=60/96 loss=0.1476 mfm=0.0086 top=0.6946
+[INFO] step=80/96 loss=0.1435 mfm=0.0067 top=0.6842
+[INFO] Epoch finished, avg_loss=0.1463, avg_mfm=0.0073, avg_top=0.6952, time=73.6s
+[INFO] Epoch 41/50 started
+[INFO] step=20/96 loss=0.1447 mfm=0.0067 top=0.6900
+[INFO] step=40/96 loss=0.1464 mfm=0.0055 top=0.7045
+[INFO] step=60/96 loss=0.1436 mfm=0.0057 top=0.6893
+[INFO] step=80/96 loss=0.1465 mfm=0.0063 top=0.7011
+[INFO] Epoch finished, avg_loss=0.1453, avg_mfm=0.0064, avg_top=0.6942, time=73.3s
+[INFO] Epoch 42/50 started
+[INFO] step=20/96 loss=0.1444 mfm=0.0060 top=0.6918
+[INFO] step=40/96 loss=0.1444 mfm=0.0052 top=0.6959
+[INFO] step=60/96 loss=0.1440 mfm=0.0047 top=0.6963
+[INFO] step=80/96 loss=0.1476 mfm=0.0070 top=0.7034
+[INFO] Epoch finished, avg_loss=0.1446, avg_mfm=0.0059, avg_top=0.6932, time=73.3s
+[INFO] Epoch 43/50 started
+[INFO] step=20/96 loss=0.1441 mfm=0.0049 top=0.6957
+[INFO] step=40/96 loss=0.1436 mfm=0.0048 top=0.6941
+[INFO] step=60/96 loss=0.1432 mfm=0.0048 top=0.6923
+[INFO] step=80/96 loss=0.1433 mfm=0.0045 top=0.6936
+[INFO] Epoch finished, avg_loss=0.1442, avg_mfm=0.0054, avg_top=0.6940, time=71.8s
+[INFO] Epoch 44/50 started
+[INFO] step=20/96 loss=0.1461 mfm=0.0046 top=0.7077
+[INFO] step=40/96 loss=0.1439 mfm=0.0053 top=0.6932
+[INFO] step=60/96 loss=0.1423 mfm=0.0047 top=0.6880
+[INFO] step=80/96 loss=0.1457 mfm=0.0056 top=0.7003
+[INFO] Epoch finished, avg_loss=0.1443, avg_mfm=0.0054, avg_top=0.6945, time=72.0s
+[INFO] Epoch 45/50 started
+[INFO] step=20/96 loss=0.1469 mfm=0.0062 top=0.7032
+[INFO] step=40/96 loss=0.1460 mfm=0.0074 top=0.6929
+[INFO] step=60/96 loss=0.1450 mfm=0.0057 top=0.6964
+[INFO] step=80/96 loss=0.1447 mfm=0.0057 top=0.6952
+[INFO] Epoch finished, avg_loss=0.1442, avg_mfm=0.0054, avg_top=0.6940, time=72.8s
+[INFO] Epoch 46/50 started
+[INFO] step=20/96 loss=0.1464 mfm=0.0077 top=0.6937
+[INFO] step=40/96 loss=0.1457 mfm=0.0063 top=0.6968
+[INFO] step=60/96 loss=0.1449 mfm=0.0069 top=0.6900
+[INFO] step=80/96 loss=0.1447 mfm=0.0061 top=0.6930
+[INFO] Epoch finished, avg_loss=0.1444, avg_mfm=0.0056, avg_top=0.6941, time=75.1s
+[INFO] Epoch 47/50 started
+[INFO] step=20/96 loss=0.1428 mfm=0.0043 top=0.6924
+[INFO] step=40/96 loss=0.1443 mfm=0.0054 top=0.6942
+[INFO] step=60/96 loss=0.1433 mfm=0.0047 top=0.6927
+[INFO] step=80/96 loss=0.1413 mfm=0.0041 top=0.6862
+[INFO] Epoch finished, avg_loss=0.1438, avg_mfm=0.0050, avg_top=0.6938, time=73.5s
+[INFO] Epoch 48/50 started
+[INFO] step=20/96 loss=0.1423 mfm=0.0044 top=0.6895
+[INFO] step=40/96 loss=0.1447 mfm=0.0041 top=0.7029
+[INFO] step=60/96 loss=0.1428 mfm=0.0045 top=0.6912
+[INFO] step=80/96 loss=0.1471 mfm=0.0066 top=0.7023
+[INFO] Epoch finished, avg_loss=0.1437, avg_mfm=0.0048, avg_top=0.6942, time=73.7s
+[INFO] Epoch 49/50 started
+[INFO] step=20/96 loss=0.1427 mfm=0.0048 top=0.6895
+[INFO] step=40/96 loss=0.1450 mfm=0.0067 top=0.6915
+[INFO] step=60/96 loss=0.1434 mfm=0.0048 top=0.6926
+[INFO] step=80/96 loss=0.1427 mfm=0.0043 top=0.6921
+[INFO] Epoch finished, avg_loss=0.1437, avg_mfm=0.0048, avg_top=0.6944, time=72.8s
+[INFO] Epoch 50/50 started
+[INFO] step=20/96 loss=0.1423 mfm=0.0043 top=0.6897
+[INFO] step=40/96 loss=0.1441 mfm=0.0052 top=0.6942
+[INFO] step=60/96 loss=0.1431 mfm=0.0046 top=0.6925
+[INFO] step=80/96 loss=0.1437 mfm=0.0056 top=0.6905
+[INFO] Epoch finished, avg_loss=0.1435, avg_mfm=0.0048, avg_top=0.6937, time=73.8s
+[INFO] Epoch 1/50 started
+[INFO] step=20/74 loss=0.2217 mfm=0.0830 top=0.6938
+[INFO] step=40/74 loss=0.1993 mfm=0.0576 top=0.7085
+[INFO] step=60/74 loss=0.2130 mfm=0.0736 top=0.6969
+[INFO] Epoch finished, avg_loss=0.2336, avg_mfm=0.0907, avg_top=0.7146, time=68.1s
+[INFO] Epoch 2/50 started
+[INFO] step=20/74 loss=0.2032 mfm=0.0626 top=0.7033
+[INFO] step=40/74 loss=0.1940 mfm=0.0549 top=0.6954
+[INFO] step=60/74 loss=0.2815 mfm=0.1445 top=0.6853
+[INFO] Epoch finished, avg_loss=0.2253, avg_mfm=0.0845, avg_top=0.7041, time=57.4s
+[INFO] Epoch 3/50 started
+[INFO] step=20/74 loss=0.2090 mfm=0.0705 top=0.6928
+[INFO] step=40/74 loss=0.2371 mfm=0.0958 top=0.7063
+[INFO] step=60/74 loss=0.2552 mfm=0.1150 top=0.7010
+[INFO] Epoch finished, avg_loss=0.2359, avg_mfm=0.0967, avg_top=0.6961, time=56.2s
+[INFO] Epoch 4/50 started
+[INFO] step=20/74 loss=0.2581 mfm=0.1201 top=0.6901
+[INFO] step=40/74 loss=0.2045 mfm=0.0664 top=0.6906
+[INFO] step=60/74 loss=0.2558 mfm=0.1191 top=0.6837
+[INFO] Epoch finished, avg_loss=0.2525, avg_mfm=0.1134, avg_top=0.6955, time=57.1s
+[INFO] Epoch 5/50 started
+[INFO] step=20/74 loss=0.2223 mfm=0.0834 top=0.6944
+[INFO] step=40/74 loss=0.2291 mfm=0.0914 top=0.6886
+[INFO] step=60/74 loss=0.2078 mfm=0.0690 top=0.6942
+[INFO] Epoch finished, avg_loss=0.2060, avg_mfm=0.0666, avg_top=0.6968, time=57.6s
+[INFO] Epoch 6/50 started
+[INFO] step=20/74 loss=0.2030 mfm=0.0644 top=0.6931
+[INFO] step=40/74 loss=0.1965 mfm=0.0585 top=0.6899
+[INFO] step=60/74 loss=0.1975 mfm=0.0555 top=0.7098
+[INFO] Epoch finished, avg_loss=0.1965, avg_mfm=0.0570, avg_top=0.6975, time=58.3s
+[INFO] Epoch 7/50 started
+[INFO] step=20/74 loss=0.2219 mfm=0.0832 top=0.6937
+[INFO] step=40/74 loss=0.1714 mfm=0.0304 top=0.7049
+[INFO] step=60/74 loss=0.2217 mfm=0.0824 top=0.6963
+[INFO] Epoch finished, avg_loss=0.2007, avg_mfm=0.0615, avg_top=0.6958, time=58.1s
+[INFO] Epoch 8/50 started
+[INFO] step=20/74 loss=0.1861 mfm=0.0461 top=0.7000
+[INFO] step=40/74 loss=0.1750 mfm=0.0368 top=0.6909
+[INFO] step=60/74 loss=0.1593 mfm=0.0219 top=0.6868
+[INFO] Epoch finished, avg_loss=0.1832, avg_mfm=0.0439, avg_top=0.6960, time=57.0s
+[INFO] Epoch 9/50 started
+[INFO] step=20/74 loss=0.1655 mfm=0.0261 top=0.6969
+[INFO] step=40/74 loss=0.1760 mfm=0.0349 top=0.7053
+[INFO] step=60/74 loss=0.1819 mfm=0.0438 top=0.6903
+[INFO] Epoch finished, avg_loss=0.1772, avg_mfm=0.0375, avg_top=0.6985, time=56.6s
+[INFO] Epoch 10/50 started
+[INFO] step=20/74 loss=0.1715 mfm=0.0318 top=0.6988
+[INFO] step=40/74 loss=0.1610 mfm=0.0211 top=0.6995
+[INFO] step=60/74 loss=0.1688 mfm=0.0301 top=0.6933
