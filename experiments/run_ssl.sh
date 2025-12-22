@@ -1,8 +1,8 @@
 #!/bin/bash
+set -e
 
-echo "[INFO] Running SSL pretraining..."
-echo "[INFO] Config: configs/ssl_train.yaml"
+echo "[INFO] Starting SSL pretraining"
 
 python src/train_ssl.py --config configs/ssl_train.yaml
 
-echo "[INFO] SSL pretraining finished."
+echo "[INFO] SSL pretraining finished"
