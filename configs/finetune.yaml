@@ -17,7 +17,7 @@ training:
 model:
   backbone: mobilevit_s
   embed_dim: 256
-  pretrained_ssl: results/main_ssl/ssl_epoch_50.pth
+  pretrained_ssl: results/main_ssl/ssl_epoch_10.pth
   freeze_backbone: false
 
 optimizer:
