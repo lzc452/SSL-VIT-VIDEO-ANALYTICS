@@ -1,0 +1,45 @@
+[INFO] Epoch 1/30 started
+[INFO] step=20/289 loss=4.7142
+[INFO] step=40/289 loss=4.6757
+[INFO] step=60/289 loss=4.5215
+[INFO] step=80/289 loss=4.5256
+[INFO] step=100/289 loss=4.5865
+[INFO] step=120/289 loss=4.4026
+[INFO] step=140/289 loss=4.3808
+[INFO] step=160/289 loss=4.4313
+[INFO] step=180/289 loss=4.5826
+[INFO] step=200/289 loss=4.3674
+[INFO] step=220/289 loss=4.3493
+[INFO] step=240/289 loss=4.3691
+[INFO] step=260/289 loss=4.2526
+[INFO] step=280/289 loss=4.3474
+[INFO] Epoch train finished, avg_loss=4.4551, time=888.6s
+[INFO] val results: Top-1: 0.0559, Top-5: 0.1707
+[INFO] Epoch 2/30 started
+[INFO] step=20/289 loss=4.3501
+[INFO] step=40/289 loss=4.2752
+[INFO] step=60/289 loss=4.3199
+[INFO] step=80/289 loss=4.2668
+[INFO] step=100/289 loss=4.0582
+[INFO] step=120/289 loss=4.0324
+[INFO] step=140/289 loss=4.2497
+[INFO] step=160/289 loss=3.8823
+[INFO] step=180/289 loss=4.2947
+[INFO] step=200/289 loss=4.1233
+[INFO] step=220/289 loss=4.0305
+[INFO] step=240/289 loss=3.9232
+[INFO] step=260/289 loss=4.2248
+[INFO] step=280/289 loss=3.9793
+[INFO] Epoch train finished, avg_loss=4.1373, time=845.5s
+[INFO] val results: Top-1: 0.0830, Top-5: 0.2645
+[INFO] Epoch 3/30 started
+[INFO] step=20/289 loss=4.0946
+[INFO] step=40/289 loss=3.8334
+[INFO] step=60/289 loss=3.9683
+[INFO] step=80/289 loss=4.0214
+[INFO] step=100/289 loss=3.8507
+[INFO] step=120/289 loss=3.7057
+[INFO] step=140/289 loss=3.6955
+[INFO] step=160/289 loss=3.8592
+[INFO] step=180/289 loss=3.7148
+[INFO] step=200/289 loss=3.7954
