@@ -1,0 +1,300 @@
+[INFO] Epoch 1/30 started
+[INFO] step=20/144 loss=4.5657
+[INFO] step=40/144 loss=4.5667
+[INFO] step=60/144 loss=4.4963
+[INFO] step=80/144 loss=4.5028
+[INFO] step=100/144 loss=4.3923
+[INFO] step=120/144 loss=4.4322
+[INFO] step=140/144 loss=4.3214
+[INFO] Epoch train finished, avg_loss=4.4822, time=36.9s
+[INFO] val results: Top-1: 0.0636, Top-5: 0.1999
+[INFO] Epoch 2/30 started
+[INFO] step=20/144 loss=4.3535
+[INFO] step=40/144 loss=4.2669
+[INFO] step=60/144 loss=4.1343
+[INFO] step=80/144 loss=4.0613
+[INFO] step=100/144 loss=4.1350
+[INFO] step=120/144 loss=4.0640
+[INFO] step=140/144 loss=3.9416
+[INFO] Epoch train finished, avg_loss=4.1806, time=31.9s
+[INFO] val results: Top-1: 0.0984, Top-5: 0.2717
+[INFO] Epoch 3/30 started
+[INFO] step=20/144 loss=3.9073
+[INFO] step=40/144 loss=3.8378
+[INFO] step=60/144 loss=3.9162
+[INFO] step=80/144 loss=3.8021
+[INFO] step=100/144 loss=3.8716
+[INFO] step=120/144 loss=4.0762
+[INFO] step=140/144 loss=3.8414
+[INFO] Epoch train finished, avg_loss=3.9305, time=31.2s
+[INFO] val results: Top-1: 0.1205, Top-5: 0.3234
+[INFO] Epoch 4/30 started
+[INFO] step=20/144 loss=3.9382
+[INFO] step=40/144 loss=3.9321
+[INFO] step=60/144 loss=3.5480
+[INFO] step=80/144 loss=3.7769
+[INFO] step=100/144 loss=3.6101
+[INFO] step=120/144 loss=3.5991
+[INFO] step=140/144 loss=3.5817
+[INFO] Epoch train finished, avg_loss=3.7191, time=32.4s
+[INFO] val results: Top-1: 0.1502, Top-5: 0.3849
+[INFO] Epoch 5/30 started
+[INFO] step=20/144 loss=3.6345
+[INFO] step=40/144 loss=3.5155
+[INFO] step=60/144 loss=3.4861
+[INFO] step=80/144 loss=3.5627
+[INFO] step=100/144 loss=3.5232
+[INFO] step=120/144 loss=3.2262
+[INFO] step=140/144 loss=3.5748
+[INFO] Epoch train finished, avg_loss=3.5457, time=32.1s
+[INFO] val results: Top-1: 0.1609, Top-5: 0.4106
+[INFO] Epoch 6/30 started
+[INFO] step=20/144 loss=3.3476
+[INFO] step=40/144 loss=3.4906
+[INFO] step=60/144 loss=3.1400
+[INFO] step=80/144 loss=3.3541
+[INFO] step=100/144 loss=3.6381
+[INFO] step=120/144 loss=3.3878
+[INFO] step=140/144 loss=3.3668
+[INFO] Epoch train finished, avg_loss=3.3812, time=31.7s
+[INFO] val results: Top-1: 0.1999, Top-5: 0.4623
+[INFO] Epoch 7/30 started
+[INFO] step=20/144 loss=3.1980
+[INFO] step=40/144 loss=3.2036
+[INFO] step=60/144 loss=3.2446
+[INFO] step=80/144 loss=3.2317
+[INFO] step=100/144 loss=3.1499
+[INFO] step=120/144 loss=3.2075
+[INFO] step=140/144 loss=3.0150
+[INFO] Epoch train finished, avg_loss=3.2333, time=31.2s
+[INFO] val results: Top-1: 0.2219, Top-5: 0.5003
+[INFO] Epoch 8/30 started
+[INFO] step=20/144 loss=3.0498
+[INFO] step=40/144 loss=2.8809
+[INFO] step=60/144 loss=3.0442
+[INFO] step=80/144 loss=2.8773
+[INFO] step=100/144 loss=2.9730
+[INFO] step=120/144 loss=3.3729
+[INFO] step=140/144 loss=2.8205
+[INFO] Epoch train finished, avg_loss=3.0879, time=31.8s
+[INFO] val results: Top-1: 0.2414, Top-5: 0.5279
+[INFO] Epoch 9/30 started
+[INFO] step=20/144 loss=2.7205
+[INFO] step=40/144 loss=2.8176
+[INFO] step=60/144 loss=2.9361
+[INFO] step=80/144 loss=2.9652
+[INFO] step=100/144 loss=3.0859
+[INFO] step=120/144 loss=2.8187
+[INFO] step=140/144 loss=2.9497
+[INFO] Epoch train finished, avg_loss=2.9320, time=32.1s
+[INFO] val results: Top-1: 0.2363, Top-5: 0.5654
+[INFO] Epoch 10/30 started
+[INFO] step=20/144 loss=2.8604
+[INFO] step=40/144 loss=2.8561
+[INFO] step=60/144 loss=2.6906
+[INFO] step=80/144 loss=2.8687
+[INFO] step=100/144 loss=2.6809
+[INFO] step=120/144 loss=2.8905
+[INFO] step=140/144 loss=2.6642
+[INFO] Epoch train finished, avg_loss=2.8029, time=33.2s
+[INFO] val results: Top-1: 0.2599, Top-5: 0.5602
+[INFO] Epoch 11/30 started
+[INFO] step=20/144 loss=2.7388
+[INFO] step=40/144 loss=2.6680
+[INFO] step=60/144 loss=2.6438
+[INFO] step=80/144 loss=2.6075
+[INFO] step=100/144 loss=2.7953
+[INFO] step=120/144 loss=2.6753
+[INFO] step=140/144 loss=2.4765
+[INFO] Epoch train finished, avg_loss=2.6645, time=31.4s
+[INFO] val results: Top-1: 0.2927, Top-5: 0.6115
+[INFO] Epoch 12/30 started
+[INFO] step=20/144 loss=2.3684
+[INFO] step=40/144 loss=2.7933
+[INFO] step=60/144 loss=2.4222
+[INFO] step=80/144 loss=2.4938
+[INFO] step=100/144 loss=2.6358
+[INFO] step=120/144 loss=2.3552
+[INFO] step=140/144 loss=2.6337
+[INFO] Epoch train finished, avg_loss=2.5054, time=31.5s
+[INFO] val results: Top-1: 0.3137, Top-5: 0.6499
+[INFO] Epoch 13/30 started
+[INFO] step=20/144 loss=2.3077
+[INFO] step=40/144 loss=2.3483
+[INFO] step=60/144 loss=2.5076
+[INFO] step=80/144 loss=2.2510
+[INFO] step=100/144 loss=2.0602
+[INFO] step=120/144 loss=2.3996
+[INFO] step=140/144 loss=2.5860
+[INFO] Epoch train finished, avg_loss=2.3839, time=33.4s
+[INFO] val results: Top-1: 0.3716, Top-5: 0.6930
+[INFO] Epoch 14/30 started
+[INFO] step=20/144 loss=2.2363
+[INFO] step=40/144 loss=2.1706
+[INFO] step=60/144 loss=2.2293
+[INFO] step=80/144 loss=2.0429
+[INFO] step=100/144 loss=2.1296
+[INFO] step=120/144 loss=2.3811
+[INFO] step=140/144 loss=1.8968
+[INFO] Epoch train finished, avg_loss=2.2491, time=31.8s
+[INFO] val results: Top-1: 0.3742, Top-5: 0.7032
+[INFO] Epoch 15/30 started
+[INFO] step=20/144 loss=1.8599
+[INFO] step=40/144 loss=1.9646
+[INFO] step=60/144 loss=2.0850
+[INFO] step=80/144 loss=2.2783
+[INFO] step=100/144 loss=2.0330
+[INFO] step=120/144 loss=1.9779
+[INFO] step=140/144 loss=2.0684
+[INFO] Epoch train finished, avg_loss=2.1083, time=32.0s
+[INFO] val results: Top-1: 0.4152, Top-5: 0.7268
+[INFO] Epoch 16/30 started
+[INFO] step=20/144 loss=1.9559
+[INFO] step=40/144 loss=1.9810
+[INFO] step=60/144 loss=1.9227
+[INFO] step=80/144 loss=1.6186
+[INFO] step=100/144 loss=1.9373
+[INFO] step=120/144 loss=1.9232
+[INFO] step=140/144 loss=2.3258
+[INFO] Epoch train finished, avg_loss=1.9579, time=31.9s
+[INFO] val results: Top-1: 0.4152, Top-5: 0.7319
+[INFO] Epoch 17/30 started
+[INFO] step=20/144 loss=1.9336
+[INFO] step=40/144 loss=1.8890
+[INFO] step=60/144 loss=1.6916
+[INFO] step=80/144 loss=1.6388
+[INFO] step=100/144 loss=1.8570
+[INFO] step=120/144 loss=1.7076
+[INFO] step=140/144 loss=1.6359
+[INFO] Epoch train finished, avg_loss=1.8478, time=32.1s
+[INFO] val results: Top-1: 0.4546, Top-5: 0.7591
+[INFO] Epoch 18/30 started
+[INFO] step=20/144 loss=1.6129
+[INFO] step=40/144 loss=1.9361
+[INFO] step=60/144 loss=1.4472
+[INFO] step=80/144 loss=1.6060
+[INFO] step=100/144 loss=2.0136
+[INFO] step=120/144 loss=1.5995
+[INFO] step=140/144 loss=1.9742
+[INFO] Epoch train finished, avg_loss=1.7065, time=31.4s
+[INFO] val results: Top-1: 0.4910, Top-5: 0.7760
+[INFO] Epoch 19/30 started
+[INFO] step=20/144 loss=1.7160
+[INFO] step=40/144 loss=1.4453
+[INFO] step=60/144 loss=1.3334
+[INFO] step=80/144 loss=1.5823
+[INFO] step=100/144 loss=1.6475
+[INFO] step=120/144 loss=1.6533
+[INFO] step=140/144 loss=1.5751
+[INFO] Epoch train finished, avg_loss=1.5835, time=31.5s
+[INFO] val results: Top-1: 0.5095, Top-5: 0.7765
+[INFO] Epoch 20/30 started
+[INFO] step=20/144 loss=1.4001
+[INFO] step=40/144 loss=1.0964
+[INFO] step=60/144 loss=1.6738
+[INFO] step=80/144 loss=1.5843
+[INFO] step=100/144 loss=1.4517
+[INFO] step=120/144 loss=1.4171
+[INFO] step=140/144 loss=1.4107
+[INFO] Epoch train finished, avg_loss=1.4680, time=31.6s
+[INFO] val results: Top-1: 0.5049, Top-5: 0.7770
+[INFO] Epoch 21/30 started
+[INFO] step=20/144 loss=1.1298
+[INFO] step=40/144 loss=1.3425
+[INFO] step=60/144 loss=1.4045
+[INFO] step=80/144 loss=1.4794
+[INFO] step=100/144 loss=1.3128
+[INFO] step=120/144 loss=1.4861
+[INFO] step=140/144 loss=1.4423
+[INFO] Epoch train finished, avg_loss=1.3677, time=31.8s
+[INFO] val results: Top-1: 0.5392, Top-5: 0.8001
+[INFO] Epoch 22/30 started
+[INFO] step=20/144 loss=1.1677
+[INFO] step=40/144 loss=1.6045
+[INFO] step=60/144 loss=1.4126
+[INFO] step=80/144 loss=1.2873
+[INFO] step=100/144 loss=1.2996
+[INFO] step=120/144 loss=1.1174
+[INFO] step=140/144 loss=1.2282
+[INFO] Epoch train finished, avg_loss=1.2451, time=31.8s
+[INFO] val results: Top-1: 0.5700, Top-5: 0.8216
+[INFO] Epoch 23/30 started
+[INFO] step=20/144 loss=1.2511
+[INFO] step=40/144 loss=1.2879
+[INFO] step=60/144 loss=1.3679
+[INFO] step=80/144 loss=1.0611
+[INFO] step=100/144 loss=0.9719
+[INFO] step=120/144 loss=0.9781
+[INFO] step=140/144 loss=1.0090
+[INFO] Epoch train finished, avg_loss=1.1509, time=32.0s
+[INFO] val results: Top-1: 0.5674, Top-5: 0.8180
+[INFO] Epoch 24/30 started
+[INFO] step=20/144 loss=1.2142
+[INFO] step=40/144 loss=0.9797
+[INFO] step=60/144 loss=1.1178
+[INFO] step=80/144 loss=1.1295
+[INFO] step=100/144 loss=0.8331
+[INFO] step=120/144 loss=1.1949
+[INFO] step=140/144 loss=0.9401
+[INFO] Epoch train finished, avg_loss=1.0544, time=31.3s
+[INFO] val results: Top-1: 0.5987, Top-5: 0.8268
+[INFO] Epoch 25/30 started
+[INFO] step=20/144 loss=0.8804
+[INFO] step=40/144 loss=0.9126
+[INFO] step=60/144 loss=0.9631
+[INFO] step=80/144 loss=1.0563
+[INFO] step=100/144 loss=0.9551
+[INFO] step=120/144 loss=0.9071
+[INFO] step=140/144 loss=0.9720
+[INFO] Epoch train finished, avg_loss=0.9894, time=32.2s
+[INFO] val results: Top-1: 0.6115, Top-5: 0.8334
+[INFO] Epoch 26/30 started
+[INFO] step=20/144 loss=0.8895
+[INFO] step=40/144 loss=0.9005
+[INFO] step=60/144 loss=0.9228
+[INFO] step=80/144 loss=0.7933
+[INFO] step=100/144 loss=0.8236
+[INFO] step=120/144 loss=0.8694
+[INFO] step=140/144 loss=0.8243
+[INFO] Epoch train finished, avg_loss=0.8899, time=31.2s
+[INFO] val results: Top-1: 0.6284, Top-5: 0.8421
+[INFO] Epoch 27/30 started
+[INFO] step=20/144 loss=0.8374
+[INFO] step=40/144 loss=0.6390
+[INFO] step=60/144 loss=0.8861
+[INFO] step=80/144 loss=0.8733
+[INFO] step=100/144 loss=0.7152
+[INFO] step=120/144 loss=0.7427
+[INFO] step=140/144 loss=0.8044
+[INFO] Epoch train finished, avg_loss=0.8198, time=31.5s
+[INFO] val results: Top-1: 0.6386, Top-5: 0.8457
+[INFO] Epoch 28/30 started
+[INFO] step=20/144 loss=0.6221
+[INFO] step=40/144 loss=0.5346
+[INFO] step=60/144 loss=0.8140
+[INFO] step=80/144 loss=0.9035
+[INFO] step=100/144 loss=0.7012
+[INFO] step=120/144 loss=0.8162
+[INFO] step=140/144 loss=0.5677
+[INFO] Epoch train finished, avg_loss=0.7285, time=32.0s
+[INFO] val results: Top-1: 0.6371, Top-5: 0.8478
+[INFO] Epoch 29/30 started
+[INFO] step=20/144 loss=0.7417
+[INFO] step=40/144 loss=0.6683
+[INFO] step=60/144 loss=0.8627
+[INFO] step=80/144 loss=0.6504
+[INFO] step=100/144 loss=0.9609
+[INFO] step=120/144 loss=0.5280
+[INFO] step=140/144 loss=0.5081
+[INFO] Epoch train finished, avg_loss=0.6828, time=31.1s
+[INFO] val results: Top-1: 0.5992, Top-5: 0.8262
+[INFO] Epoch 30/30 started
+[INFO] step=20/144 loss=0.6364
+[INFO] step=40/144 loss=0.6458
+[INFO] step=60/144 loss=0.6724
+[INFO] step=80/144 loss=0.5783
+[INFO] step=100/144 loss=0.4958
+[INFO] step=120/144 loss=0.7535
+[INFO] step=140/144 loss=0.5267
+[INFO] Epoch train finished, avg_loss=0.6386, time=31.8s
+[INFO] val results: Top-1: 0.6397, Top-5: 0.8421

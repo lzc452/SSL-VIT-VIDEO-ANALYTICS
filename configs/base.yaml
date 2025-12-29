@@ -10,7 +10,7 @@ device:
 dataset:
   backend: frame_lazy
   clip_len: 16
-  stride: 2
+  stride: 8
   image_size: 112
 
 paths:
