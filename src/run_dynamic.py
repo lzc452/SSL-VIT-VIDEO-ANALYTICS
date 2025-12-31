@@ -1,11 +1,11 @@
 import os
 import sys
 import time
+import argparse
 from pathlib import Path
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from datasets.loader import LazyFrameDataset
 from models.mobilevit import build_mobilevit_s
+from models.dynamic_infer import streaming_early_exit, select_topk_frames
 from utils import load_config, set_seed
 
 
@@ -38,24 +39,6 @@ class VideoClassifier(nn.Module):
         feats = torch.stack(feats, dim=1)              # [B, T, D]
         video_emb = feats.mean(dim=1)                  # [B, D]
         logits = self.classifier(video_emb)            # [B, K]
-        return logits
-
-    @torch.no_grad()
-    def forward_prefix(self, clip, t_used):
-        """
-        Early-exit evaluation: only use first t_used frames.
-        clip: [B, C, T, H, W], t_used <= T
-        """
-        B, C, T, H, W = clip.shape
-        t_used = min(t_used, T)
-
-        feats = []
-        for t in range(t_used):
-            _, emb = self.backbone(clip[:, :, t, :, :])
-            feats.append(emb)
-        feats = torch.stack(feats, dim=1)   # [B, t_used, D]
-        video_emb = feats.mean(dim=1)
-        logits = self.classifier(video_emb)
         return logits
 
 
@@ -91,24 +74,6 @@ def accuracy_topk(logits, targets, topk=(1, )):
     return out
 
 
-def estimate_motion_scores(clip):
-    """
-    clip: [B,C,T,H,W] normalized tensor
-    return scores: [B,T] higher means more motion/change
-    Simple and cheap: L1 diff between consecutive frames (channel-wise)
-    """
-    # convert to per-frame magnitude
-    # diff[t] = mean(|x_t - x_{t-1}|)
-    B, C, T, H, W = clip.shape
-    scores = torch.zeros((B, T), device=clip.device)
-    if T <= 1:
-        return scores
-
-    diffs = (clip[:, :, 1:, :, :] - clip[:, :, :-1, :, :]).abs().mean(dim=(1, 3, 4))  # [B, T-1]
-    scores[:, 1:] = diffs
-    return scores
-
-
 @torch.no_grad()
 def run_early_exit(model, loader, device, cfg, log_f):
     thresholds = cfg["dynamic"]["confidence_thresholds"]
@@ -120,14 +85,11 @@ def run_early_exit(model, loader, device, cfg, log_f):
     save_dir.mkdir(parents=True, exist_ok=True)
     csv_path = save_dir / "early_exit_results.csv"
 
-    topk = (1, 5)  # fixed for chapter 4 usage; you can make it yaml if needed
-
+    topk = (1, 5)
     results_lines = ["threshold,top1,top5,avg_frames,avg_conf,avg_latency_ms,throughput_fps\n"]
 
-    # runtime settings
     num_warmup = int(cfg["runtime"]["num_warmup"])
     num_measure = int(cfg["runtime"]["num_measure"])
-    use_amp = bool(cfg["runtime"]["amp"])
 
     for thr in thresholds:
         correct1 = 0.0
@@ -135,8 +97,6 @@ def run_early_exit(model, loader, device, cfg, log_f):
         total = 0
         frames_used_sum = 0.0
         conf_sum = 0.0
-
-        # latency measurement
         latencies = []
 
         for i, (clip, label) in enumerate(loader):
@@ -146,7 +106,6 @@ def run_early_exit(model, loader, device, cfg, log_f):
             B, C, T, H, W = clip.shape
             T = min(T, max_frames)
 
-            # warmup / measure control (measure only first num_measure batches after warmup)
             do_measure = (i >= num_warmup) and (i < num_warmup + num_measure)
 
             if do_measure and device.type == "cuda":
@@ -154,52 +113,29 @@ def run_early_exit(model, loader, device, cfg, log_f):
                 ender = torch.cuda.Event(enable_timing=True)
                 starter.record()
 
-            # Early exit loop (per batch)
-            decided = torch.zeros((B,), dtype=torch.bool, device=device)
-            used = torch.zeros((B,), dtype=torch.long, device=device)  # frames used
-            final_logits = torch.zeros((B, cfg["dataset"]["num_classes"]), device=device)
+            # Streaming early-exit (true compute saving; frames encoded once)
+            final_logits, stats = streaming_early_exit(
+                backbone=model.backbone,
+                classifier=model.classifier,
+                clip=clip[:, :, :T, :, :],
+                threshold=float(thr),
+                min_frames=min_frames,
+                max_frames=T,
+                frame_step=step,
+            )
 
-            for t_used in range(min_frames, T + 1, step):
-                logits = model.forward_prefix(clip[:, :, :T, :, :], t_used=t_used)
-                prob = F.softmax(logits, dim=1)
-                conf, _ = prob.max(dim=1)
-
-                # decide newly satisfied samples
-                new_decide = (~decided) & (conf >= thr)
-                if new_decide.any():
-                    final_logits[new_decide] = logits[new_decide]
-                    used[new_decide] = t_used
-                    decided[new_decide] = True
-
-                # if all decided, stop
-                if decided.all():
-                    break
-
-            # for remaining undecided, use max_frames or T
-            if (~decided).any():
-                t_final = T
-                logits = model.forward_prefix(clip[:, :, :T, :, :], t_used=t_final)
-                final_logits[~decided] = logits[~decided]
-                used[~decided] = t_final
-                decided[~decided] = True
-
-            # measure end
             if do_measure and device.type == "cuda":
                 ender.record()
                 torch.cuda.synchronize()
                 latencies.append(starter.elapsed_time(ender))  # ms
 
-            # accuracy
             acc = accuracy_topk(final_logits, label, topk=topk)
             correct1 += acc[1] * B
             correct5 += acc[5] * B
             total += B
 
-            frames_used_sum += used.float().sum().item()
-
-            # confidence summary (use final logits)
-            conf = F.softmax(final_logits, dim=1).max(dim=1)[0]
-            conf_sum += conf.sum().item()
+            frames_used_sum += stats.used_frames.float().sum().item()
+            conf_sum += stats.final_conf.sum().item()
 
         top1 = correct1 / total
         top5 = correct5 / total
@@ -208,8 +144,6 @@ def run_early_exit(model, loader, device, cfg, log_f):
 
         if len(latencies) > 0:
             avg_latency = sum(latencies) / len(latencies)
-            # throughput in "frames per second" approx: (avg_frames per sample) / (time per sample)
-            # we can output clips/s as well; here output FPS-equivalent for discussion
             clips_per_sec = (loader.batch_size / (avg_latency / 1000.0)) if avg_latency > 0 else 0.0
             throughput_fps = clips_per_sec * avg_frames
         else:
@@ -239,11 +173,8 @@ def run_frame_gating(model, loader, device, cfg, log_f):
     csv_path = save_dir / "frame_gating_results.csv"
 
     topk_eval = (1, 5)
-
-    # runtime settings
     num_warmup = int(cfg["runtime"]["num_warmup"])
     num_measure = int(cfg["runtime"]["num_measure"])
-    use_amp = bool(cfg["runtime"]["amp"])
 
     results_lines = ["k,top1,top5,avg_latency_ms,throughput_clips_per_s\n"]
 
@@ -251,7 +182,6 @@ def run_frame_gating(model, loader, device, cfg, log_f):
         correct1 = 0.0
         correct5 = 0.0
         total = 0
-
         latencies = []
 
         for i, (clip, label) in enumerate(loader):
@@ -260,20 +190,7 @@ def run_frame_gating(model, loader, device, cfg, log_f):
             B, C, T, H, W = clip.shape
             k_eff = min(int(k), T)
 
-            # select frames (indices) per sample
-            if score_type == "motion":
-                scores = estimate_motion_scores(clip)  # [B,T]
-                idx = scores.topk(k_eff, dim=1, largest=True).indices  # [B,k]
-                idx, _ = idx.sort(dim=1)
-            elif score_type == "random":
-                idx = torch.stack([torch.randperm(T, device=device)[:k_eff].sort()[0] for _ in range(B)], dim=0)
-            else:
-                raise RuntimeError(f"[ERROR] Unknown gating_score: {score_type}")
-
-            # gather frames
-            # clip_sel: [B,C,k,H,W]
-            idx_view = idx.view(B, 1, k_eff, 1, 1).expand(B, C, k_eff, H, W)
-            clip_sel = torch.gather(clip, dim=2, index=idx_view)
+            clip_sel, _ = select_topk_frames(clip, k=k_eff, score_type=score_type)
 
             do_measure = (i >= num_warmup) and (i < num_warmup + num_measure)
             if do_measure and device.type == "cuda":
@@ -315,21 +232,125 @@ def run_frame_gating(model, loader, device, cfg, log_f):
         print(f"[INFO] Saved frame-gating summary CSV: {csv_path}")
 
 
+@torch.no_grad()
+def run_hybrid(model, loader, device, cfg, log_f):
+    """Hybrid dynamic inference: frame gating -> streaming early-exit.
+
+    This is the most "journal-ready" closed-loop setting in this repo:
+    - gating reduces the number of frames processed;
+    - early-exit stops even earlier when confidence is sufficient;
+    - both knobs (k, threshold) produce a dense trade-off frontier.
+    """
+
+    topk_list = cfg["dynamic"]["gating_topk_list"]
+    score_type = cfg["dynamic"]["gating_score"]
+    thresholds = cfg["dynamic"]["confidence_thresholds"]
+    min_frames = int(cfg["dynamic"]["min_frames"])
+    frame_step = int(cfg["dynamic"]["frame_step"])
+
+    save_dir = Path(cfg["output"]["save_dir"])
+    save_dir.mkdir(parents=True, exist_ok=True)
+    csv_path = save_dir / "hybrid_results.csv"
+
+    topk_eval = (1, 5)
+    num_warmup = int(cfg["runtime"]["num_warmup"])
+    num_measure = int(cfg["runtime"]["num_measure"])
+
+    results_lines = ["k,threshold,top1,top5,avg_used_frames,avg_conf,avg_latency_ms\n"]
+
+    for k in topk_list:
+        for thr in thresholds:
+            correct1 = 0.0
+            correct5 = 0.0
+            total = 0
+            frames_used_sum = 0.0
+            conf_sum = 0.0
+            latencies = []
+
+            for i, (clip, label) in enumerate(loader):
+                clip = clip.to(device, non_blocking=True)
+                label = label.to(device, non_blocking=True)
+                B, C, T, H, W = clip.shape
+                k_eff = min(int(k), T)
+
+                clip_sel, _ = select_topk_frames(clip, k=k_eff, score_type=score_type)
+
+                do_measure = (i >= num_warmup) and (i < num_warmup + num_measure)
+                if do_measure and device.type == "cuda":
+                    starter = torch.cuda.Event(enable_timing=True)
+                    ender = torch.cuda.Event(enable_timing=True)
+                    starter.record()
+
+                final_logits, stats = streaming_early_exit(
+                    backbone=model.backbone,
+                    classifier=model.classifier,
+                    clip=clip_sel,
+                    threshold=float(thr),
+                    min_frames=min_frames,
+                    max_frames=k_eff,
+                    frame_step=frame_step,
+                )
+
+                if do_measure and device.type == "cuda":
+                    ender.record()
+                    torch.cuda.synchronize()
+                    latencies.append(starter.elapsed_time(ender))
+
+                acc = accuracy_topk(final_logits, label, topk=topk_eval)
+                correct1 += acc[1] * B
+                correct5 += acc[5] * B
+                total += B
+
+                frames_used_sum += stats.used_frames.float().sum().item()
+                conf_sum += stats.final_conf.sum().item()
+
+            top1 = correct1 / total
+            top5 = correct5 / total
+            avg_used = frames_used_sum / total
+            avg_conf = conf_sum / total
+            avg_latency = (sum(latencies) / len(latencies)) if len(latencies) else 0.0
+
+            results_lines.append(
+                f"{k_eff},{thr:.2f},{top1:.6f},{top5:.6f},{avg_used:.3f},{avg_conf:.4f},{avg_latency:.3f}\n"
+            )
+
+            msg = f"[INFO] Hybrid k={k_eff} thr={thr:.2f} Top1={top1:.4f} Top5={top5:.4f} avg_used={avg_used:.2f} lat_ms={avg_latency:.2f}"
+            print(msg)
+            log_f.write(msg + "\n")
+            log_f.flush()
+
+    if cfg["output"]["save_csv"]:
+        csv_path.write_text("".join(results_lines), encoding="utf-8")
+        print(f"[INFO] Saved hybrid summary CSV: {csv_path}")
+
+
 def main():
-    base_cfg = load_config("configs/base.yaml")
-    dyn_cfg = load_config("configs/dynamic.yaml")
+    parser = argparse.ArgumentParser(description="Run dynamic inference experiments (early-exit / frame-gating / hybrid).")
+    parser.add_argument("--base", type=str, default="configs/base.yaml", help="Path to base.yaml")
+    parser.add_argument("--cfg", type=str, default="configs/dynamic.yaml", help="Path to dynamic.yaml")
+    parser.add_argument("--mode", type=str, default=None, help="Override dynamic.mode (early_exit|frame_gating|hybrid)")
+    parser.add_argument("--save_dir", type=str, default=None, help="Override output.save_dir")
+    args = parser.parse_args()
+
+    base_cfg = load_config(args.base)
+    dyn_cfg = load_config(args.cfg)
+
+    if args.mode is not None:
+        dyn_cfg.setdefault("dynamic", {})
+        dyn_cfg["dynamic"]["mode"] = args.mode
+    if args.save_dir is not None:
+        dyn_cfg.setdefault("output", {})
+        dyn_cfg["output"]["save_dir"] = args.save_dir
 
     set_seed(base_cfg["seed"])
 
     device = torch.device("cuda" if base_cfg["device"]["use_cuda"] and torch.cuda.is_available() else "cpu")
     print(f"[INFO] Using device: {device}")
 
-    # logs
     log_dir = Path(base_cfg["paths"]["log_dir"])
     log_dir.mkdir(parents=True, exist_ok=True)
     log_path = log_dir / "dynamic.log"
 
-    # dataset (supervised mode)
     split_root = Path(base_cfg["paths"]["split_root"])
     split_file = split_root / dyn_cfg["dataset"]["split"]
 
@@ -349,7 +370,6 @@ def main():
         pin_memory=base_cfg["device"]["pin_memory"],
     )
 
-    # model
     model = VideoClassifier(
         num_classes=int(dyn_cfg["dataset"]["num_classes"]),
         embed_dim=int(dyn_cfg["model"]["embed_dim"]),
@@ -357,8 +377,7 @@ def main():
     load_finetune_ckpt(model, dyn_cfg["model"]["finetune_ckpt"], device)
 
     mode = dyn_cfg["dynamic"]["mode"]
-    save_dir = Path(dyn_cfg["output"]["save_dir"])
-    save_dir.mkdir(parents=True, exist_ok=True)
+    Path(dyn_cfg["output"]["save_dir"]).mkdir(parents=True, exist_ok=True)
 
     with open(log_path, "a", encoding="utf-8") as log_f:
         msg = f"[INFO] Dynamic inference started, mode={mode}"
@@ -371,10 +390,7 @@ def main():
         elif mode == "frame_gating":
             run_frame_gating(model, loader, device, dyn_cfg, log_f)
         elif mode == "hybrid":
-            # hybrid: gating first, then early-exit within selected frames
-            # For simplicity, run both summaries (paper can discuss combined curve)
-            run_frame_gating(model, loader, device, dyn_cfg, log_f)
-            run_early_exit(model, loader, device, dyn_cfg, log_f)
+            run_hybrid(model, loader, device, dyn_cfg, log_f)
         else:
             raise RuntimeError(f"[ERROR] Unknown dynamic.mode: {mode}")
 

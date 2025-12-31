@@ -1,0 +1,51 @@
+[INFO] Dynamic inference started, mode=early_exit
+[INFO] EarlyExit thr=0.55 Top1=0.6617 Top5=0.8473 avg_frames=7.93 avg_latency_ms=53.78
+[INFO] EarlyExit thr=0.65 Top1=0.6663 Top5=0.8529 avg_frames=9.18 avg_latency_ms=55.30
+[INFO] EarlyExit thr=0.70 Top1=0.6725 Top5=0.8549 avg_frames=9.87 avg_latency_ms=56.76
+[INFO] EarlyExit thr=0.75 Top1=0.6740 Top5=0.8565 avg_frames=10.50 avg_latency_ms=57.57
+[INFO] EarlyExit thr=0.80 Top1=0.6725 Top5=0.8570 avg_frames=11.00 avg_latency_ms=58.53
+[INFO] EarlyExit thr=0.85 Top1=0.6740 Top5=0.8565 avg_frames=11.65 avg_latency_ms=58.70
+[INFO] Dynamic inference started, mode=frame_gating
+[INFO] FrameGating k=4 Top1=0.6304 Top5=0.8396 avg_latency_ms=12.71
+[INFO] FrameGating k=6 Top1=0.6463 Top5=0.8426 avg_latency_ms=18.54
+[INFO] FrameGating k=8 Top1=0.6653 Top5=0.8508 avg_latency_ms=24.62
+[INFO] FrameGating k=10 Top1=0.6668 Top5=0.8529 avg_latency_ms=30.61
+[INFO] FrameGating k=12 Top1=0.6699 Top5=0.8580 avg_latency_ms=36.47
+[INFO] FrameGating k=16 Top1=0.6740 Top5=0.8580 avg_latency_ms=48.72
+[INFO] Dynamic inference started, mode=hybrid
+[INFO] Hybrid k=4 thr=0.55 Top1=0.6304 Top5=0.8396 avg_used=4.00 lat_ms=15.28
+[INFO] Hybrid k=4 thr=0.65 Top1=0.6304 Top5=0.8396 avg_used=4.00 lat_ms=15.51
+[INFO] Hybrid k=4 thr=0.70 Top1=0.6304 Top5=0.8396 avg_used=4.00 lat_ms=15.16
+[INFO] Hybrid k=4 thr=0.75 Top1=0.6304 Top5=0.8396 avg_used=4.00 lat_ms=15.18
+[INFO] Hybrid k=4 thr=0.80 Top1=0.6304 Top5=0.8396 avg_used=4.00 lat_ms=15.81
+[INFO] Hybrid k=4 thr=0.85 Top1=0.6304 Top5=0.8396 avg_used=4.00 lat_ms=15.37
+[INFO] Hybrid k=6 thr=0.55 Top1=0.6443 Top5=0.8396 avg_used=4.84 lat_ms=22.37
+[INFO] Hybrid k=6 thr=0.65 Top1=0.6458 Top5=0.8396 avg_used=5.01 lat_ms=22.73
+[INFO] Hybrid k=6 thr=0.70 Top1=0.6458 Top5=0.8401 avg_used=5.10 lat_ms=22.82
+[INFO] Hybrid k=6 thr=0.75 Top1=0.6458 Top5=0.8411 avg_used=5.19 lat_ms=22.46
+[INFO] Hybrid k=6 thr=0.80 Top1=0.6463 Top5=0.8416 avg_used=5.26 lat_ms=22.36
+[INFO] Hybrid k=6 thr=0.85 Top1=0.6463 Top5=0.8416 avg_used=5.35 lat_ms=22.30
+[INFO] Hybrid k=8 thr=0.55 Top1=0.6581 Top5=0.8437 avg_used=5.58 lat_ms=28.94
+[INFO] Hybrid k=8 thr=0.65 Top1=0.6612 Top5=0.8462 avg_used=5.96 lat_ms=28.95
+[INFO] Hybrid k=8 thr=0.70 Top1=0.6627 Top5=0.8488 avg_used=6.12 lat_ms=28.89
+[INFO] Hybrid k=8 thr=0.75 Top1=0.6643 Top5=0.8503 avg_used=6.32 lat_ms=29.30
+[INFO] Hybrid k=8 thr=0.80 Top1=0.6643 Top5=0.8503 avg_used=6.47 lat_ms=29.80
+[INFO] Hybrid k=8 thr=0.85 Top1=0.6643 Top5=0.8503 avg_used=6.67 lat_ms=29.52
+[INFO] Hybrid k=10 thr=0.55 Top1=0.6576 Top5=0.8462 avg_used=6.22 lat_ms=35.44
+[INFO] Hybrid k=10 thr=0.65 Top1=0.6622 Top5=0.8514 avg_used=6.82 lat_ms=35.51
+[INFO] Hybrid k=10 thr=0.70 Top1=0.6643 Top5=0.8524 avg_used=7.11 lat_ms=35.49
+[INFO] Hybrid k=10 thr=0.75 Top1=0.6658 Top5=0.8529 avg_used=7.41 lat_ms=36.08
+[INFO] Hybrid k=10 thr=0.80 Top1=0.6663 Top5=0.8529 avg_used=7.67 lat_ms=36.09
+[INFO] Hybrid k=10 thr=0.85 Top1=0.6653 Top5=0.8519 avg_used=7.97 lat_ms=36.51
+[INFO] Hybrid k=12 thr=0.55 Top1=0.6586 Top5=0.8488 avg_used=6.73 lat_ms=42.26
+[INFO] Hybrid k=12 thr=0.65 Top1=0.6643 Top5=0.8560 avg_used=7.59 lat_ms=41.79
+[INFO] Hybrid k=12 thr=0.70 Top1=0.6668 Top5=0.8565 avg_used=8.02 lat_ms=42.13
+[INFO] Hybrid k=12 thr=0.75 Top1=0.6663 Top5=0.8575 avg_used=8.43 lat_ms=43.30
+[INFO] Hybrid k=12 thr=0.80 Top1=0.6674 Top5=0.8580 avg_used=8.80 lat_ms=42.81
+[INFO] Hybrid k=12 thr=0.85 Top1=0.6674 Top5=0.8585 avg_used=9.21 lat_ms=43.20
+[INFO] Hybrid k=16 thr=0.55 Top1=0.6617 Top5=0.8473 avg_used=7.93 lat_ms=52.35
+[INFO] Hybrid k=16 thr=0.65 Top1=0.6663 Top5=0.8529 avg_used=9.18 lat_ms=54.74
+[INFO] Hybrid k=16 thr=0.70 Top1=0.6725 Top5=0.8549 avg_used=9.87 lat_ms=55.10
+[INFO] Hybrid k=16 thr=0.75 Top1=0.6740 Top5=0.8565 avg_used=10.50 lat_ms=55.93
+[INFO] Hybrid k=16 thr=0.80 Top1=0.6725 Top5=0.8570 avg_used=11.00 lat_ms=56.91
+[INFO] Hybrid k=16 thr=0.85 Top1=0.6740 Top5=0.8565 avg_used=11.65 lat_ms=57.47

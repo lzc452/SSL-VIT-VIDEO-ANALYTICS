@@ -7,16 +7,22 @@ dataset:
 
 model:
   embed_dim: 256
-  finetune_ckpt: results/finetune/finetune_best.pth # 你需要改成真实存在的路径
+  # Use your best downstream checkpoint (recommended: FT-SSL-2stage best)
+  finetune_ckpt: results/finetune/two_stage/finetune_epoch_28_top1_0.6715.pth
 
 dynamic:
   mode: early_exit # early_exit | frame_gating | hybrid
-  confidence_thresholds: [0.50, 0.60, 0.70, 0.80, 0.90]
+  # Confidence thresholds (higher => more conservative, higher accuracy, less speedup)
+  confidence_thresholds: [0.55, 0.65, 0.70, 0.75, 0.80, 0.85]
+  # Allow exit only after observing at least min_frames frames
   min_frames: 4
+  # Cap the maximum processed frames (usually equals clip_len)
   max_frames: 16
-  frame_step: 1 # 每次增加多少帧（early exit 时）
+  # Process one frame every `frame_step` steps (>=1). Larger => more speedup, less accuracy.
+  frame_step: 1
 
-  gating_topk_list: [4, 6, 8, 10, 12, 16] # frame_gating 模式用
+  # Frame gating knob (used by frame_gating & hybrid)
+  gating_topk_list: [4, 6, 8, 10, 12, 16]
   gating_score: motion # motion | random
 
 runtime:
