@@ -1,5 +1,8 @@
 # configs/finetune.yaml
 
+experiment:
+  mode: ft_ssl    # ft_random | linear_probe | ft_ssl | two_stage
+
 dataset:
   name: UCF101
   train_split: UCF101_train.txt
@@ -14,10 +17,15 @@ training:
   log_interval: 20
   amp: true
 
+  # two-stage settings (only used when mode=two_stage)
+  stage1_epochs: 10
+  head_lr: 0.001
+  backbone_lr: 0.0001
+
 model:
   backbone: mobilevit_s
   embed_dim: 256
-  pretrained_ssl: results/main_ssl/ssl_epoch_10.pth
+  pretrained_ssl: results/main_ssl/ssl_epoch_50.pth
   freeze_backbone: false
 
 optimizer:
