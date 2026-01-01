@@ -5,14 +5,23 @@ dataset:
 
 model:
   embed_dim: 256
-  finetune_ckpt: results/finetune/finetune_best.pth
+  finetune_ckpt: results/finetune/two_stage/finetune_epoch_28_top1_0.6715.pth
 
 visual_privacy:
   enabled: true
+
+  # FaceForensics++ frame root (你按自己实际路径改；默认就是你项目结构里 data/FaceForensics_frames)
+  frame_root: data/FaceForensics_frames
+  max_images: 2000          # 为了可控时间：随机抽多少帧做统计
+  save_examples: 8          # 保存多少张 before/after 示例
+
   detector: yunet
   yunet_model: assets/yunet.onnx
+  # 如果 assets/yunet.onnx 不存在，会自动下载；你也可以手动放进去
+  yunet_url: https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx
   conf_threshold: 0.6
   nms_threshold: 0.3
+
   method: face_blur
   blur_kernel: 31
   overwrite: false
@@ -22,8 +31,7 @@ feature_privacy:
   enabled: true
   noise_sigmas: [0.0, 0.05, 0.1, 0.2]
   mask_ratios: [0.0, 0.2, 0.4]
-  compute_entropy: true
-  compute_flr: true
+
   attacker_epochs: 10
   attacker_lr: 1e-3
 
