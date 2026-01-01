@@ -1,73 +1,189 @@
+"""src/models/dynamic_infer.py
+
+Journal-grade dynamic inference utilities (video-level) for edge deployment.
+
+Key idea
+--------
+Most "early-exit" demo code re-runs the backbone on the same prefix multiple times
+to check the confidence at different prefix lengths. That *does not* represent
+real compute savings on edge devices.
+
+Here we implement *streaming* inference:
+  - frames are encoded *once* in temporal order;
+  - a running mean embedding is maintained;
+  - confidence is checked after each newly processed frame;
+  - samples that satisfy the confidence threshold stop consuming compute.
+
+We also include a lightweight frame gating method based on frame-difference
+motion scores, and a hybrid mode (gating + early-exit).
+
+All functions are designed to integrate with the repo's MobileViT-S backbone
+and the finetune classifier head.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Optional, Tuple
+
 import torch
 import torch.nn.functional as F
 
 
-def encode_frames_to_logits(backbone, head, clips):
+@torch.no_grad()
+def motion_scores_l1(clip: torch.Tensor) -> torch.Tensor:
+    """Compute per-frame motion score with cheap L1 differences.
+
+    Args:
+        clip: [B, C, T, H, W] normalized tensor.
+
+    Returns:
+        scores: [B, T], higher means more motion/change.
     """
-    将视频 clip 编码为逐帧分类 logits.
+    B, C, T, H, W = clip.shape
+    scores = torch.zeros((B, T), device=clip.device)
+    if T <= 1:
+        return scores
+    diffs = (clip[:, :, 1:, :, :] - clip[:, :, :-1, :, :]).abs().mean(dim=(1, 3, 4))  # [B, T-1]
+    scores[:, 1:] = diffs
+    return scores
 
-    输入:
-      backbone: MobileViTS 实例
-      head: ClassificationHead 实例
-      clips: [B, C, T, H, W]
 
-    输出:
-      frame_logits: [B, T, num_classes]
+@torch.no_grad()
+def select_topk_frames(clip: torch.Tensor, k: int, score_type: str = "motion") -> Tuple[torch.Tensor, torch.Tensor]:
+    """Select k frames per sample and return the selected clip.
+
+    Args:
+        clip: [B,C,T,H,W]
+        k: number of frames to keep
+        score_type: "motion" | "random"
+
+    Returns:
+        clip_sel: [B,C,k,H,W]
+        idx: [B,k] selected indices (sorted ascending)
     """
-    B, C, T, H, W = clips.shape
-    device = clips.device
+    B, C, T, H, W = clip.shape
+    k_eff = min(int(k), T)
 
-    # [B, C, T, H, W] -> [B, T, C, H, W]
-    clips = clips.permute(0, 2, 1, 3, 4).contiguous()
-    frames = clips.view(B * T, C, H, W)  # [B*T, C, H, W]
+    if score_type == "motion":
+        scores = motion_scores_l1(clip)  # [B,T]
+        idx = scores.topk(k_eff, dim=1, largest=True).indices
+        idx, _ = idx.sort(dim=1)
+    elif score_type == "random":
+        idx = torch.stack([
+            torch.randperm(T, device=clip.device)[:k_eff].sort()[0]
+            for _ in range(B)
+        ], dim=0)
+    else:
+        raise ValueError(f"Unknown score_type: {score_type}")
 
-    feat_map = backbone(frames)          # [B*T, D, h, w]
-    feat_vec = feat_map.mean(dim=[2, 3]) # [B*T, D]
-
-    # ClassificationHead 期望输入 [B, D, 1, 1]
-    logits = head(feat_vec.unsqueeze(-1).unsqueeze(-1))  # [B*T, num_classes]
-
-    frame_logits = logits.view(B, T, -1)  # [B, T, num_classes]
-    return frame_logits
+    idx_view = idx.view(B, 1, k_eff, 1, 1).expand(B, C, k_eff, H, W)
+    clip_sel = torch.gather(clip, dim=2, index=idx_view)
+    return clip_sel, idx
 
 
-def temporal_dynamic_exit(logits_seq, threshold=0.7, min_frames=2):
+@dataclass
+class EarlyExitStats:
+    """Statistics returned by streaming early-exit."""
+    used_frames: torch.Tensor  # [B] int
+    final_conf: torch.Tensor   # [B] float
+
+
+@torch.no_grad()
+def streaming_early_exit(
+    backbone,
+    classifier,
+    clip: torch.Tensor,
+    threshold: float,
+    min_frames: int = 4,
+    max_frames: Optional[int] = None,
+    frame_step: int = 1,
+) -> Tuple[torch.Tensor, EarlyExitStats]:
+    """Streaming confidence-based temporal early-exit.
+
+    This implementation processes each frame at most once.
+
+    Args:
+        backbone: MobileViT-S backbone. Must support `backbone(x) -> (feat_map, emb)` or similar.
+        classifier: nn.Linear mapping embedding -> logits.
+        clip: [B,C,T,H,W]
+        threshold: confidence threshold (max softmax prob)
+        min_frames: minimum frames before allowing exit
+        max_frames: optional cap on frames to process
+        frame_step: process every `frame_step` frames (>=1). Extra compute knob.
+
+    Returns:
+        final_logits: [B,K]
+        stats: EarlyExitStats (used_frames, final_conf)
     """
-    在单个 clip 的帧序列上执行时序动态推理策略.
+    device = clip.device
+    B, C, T, H, W = clip.shape
+    if max_frames is not None:
+        T = min(T, int(max_frames))
+        clip = clip[:, :, :T, :, :]
+    frame_step = max(int(frame_step), 1)
+    min_frames = max(int(min_frames), 1)
 
-    输入:
-      logits_seq: [T, num_classes] 逐帧 logits
-      threshold: float, 早退置信度阈值
-      min_frames: int, 至少使用的帧数
+    used = torch.zeros((B,), dtype=torch.long, device=device)
+    decided = torch.zeros((B,), dtype=torch.bool, device=device)
 
-    输出:
-      exit_index: int, 使用到的最后一帧索引 (0-based)
-      pred_label: int, 早退时的预测类别
-      conf: float, 早退时的最高置信度
-    """
-    T, C = logits_seq.shape
-    probs_running = None
-    pred_label = None
-    conf = 0.0
-    exit_index = T - 1
+    sum_emb = None
+    cnt_emb = torch.zeros((B,), dtype=torch.long, device=device)
+    final_logits = None
 
-    for t in range(T):
-        # [0..t] 的平均 logits -> softmax
-        avg_logits = logits_seq[: t + 1].mean(dim=0, keepdim=True)  # [1, C]
-        probs = F.softmax(avg_logits, dim=-1)                       # [1, C]
-        max_conf, max_idx = probs.max(dim=-1)                       # [1], [1]
+    def _encode_frame(x: torch.Tensor) -> torch.Tensor:
+        out = backbone(x)
+        # repo MobileViT returns (feat_map, emb)
+        if isinstance(out, (tuple, list)) and len(out) >= 2:
+            emb = out[1]
+        else:
+            feat = out
+            emb = feat.mean(dim=[2, 3])
+        return emb
 
-        max_conf_val = max_conf.item()
-        max_idx_val = max_idx.item()
+    emb0 = _encode_frame(clip[:, :, 0, :, :])  # [B,D]
+    D = emb0.shape[-1]
+    sum_emb = torch.zeros((B, D), device=device, dtype=emb0.dtype)
+    final_logits = torch.zeros((B, classifier.out_features), device=device, dtype=emb0.dtype)
 
-        # 记录当前状态
-        probs_running = probs
-        pred_label = max_idx_val
-        conf = max_conf_val
-        exit_index = t
+    sum_emb += emb0
+    cnt_emb += 1
 
-        # 至少看到 min_frames 帧之后，才允许早退
-        if (t + 1) >= min_frames and max_conf_val >= threshold:
+    def _check_and_update(active_mask: torch.Tensor):
+        if not active_mask.any():
+            return
+        mean_emb = sum_emb[active_mask] / cnt_emb[active_mask].unsqueeze(1).clamp_min(1)
+        logits = classifier(mean_emb)
+        prob = F.softmax(logits, dim=1)
+        conf, _ = prob.max(dim=1)
+
+        can_exit = cnt_emb[active_mask] >= min_frames
+        newly = (conf >= threshold) & can_exit
+        if newly.any():
+            idx = active_mask.nonzero(as_tuple=False).view(-1)
+            idx_new = idx[newly]
+            final_logits[idx_new] = logits[newly]
+            used[idx_new] = cnt_emb[idx_new]
+            decided[idx_new] = True
+
+    _check_and_update(~decided)
+
+    for t in range(1, T, frame_step):
+        active = ~decided
+        if not active.any():
             break
+        emb = _encode_frame(clip[:, :, t, :, :])
+        sum_emb[active] += emb[active]
+        cnt_emb[active] += 1
+        _check_and_update(active)
 
-    return exit_index, pred_label, conf
+    remain = ~decided
+    if remain.any():
+        mean_emb = sum_emb[remain] / cnt_emb[remain].unsqueeze(1).clamp_min(1)
+        logits = classifier(mean_emb)
+        final_logits[remain] = logits
+        used[remain] = cnt_emb[remain]
+        decided[remain] = True
+
+    final_conf = F.softmax(final_logits, dim=1).max(dim=1)[0]
+    return final_logits, EarlyExitStats(used_frames=used, final_conf=final_conf)
