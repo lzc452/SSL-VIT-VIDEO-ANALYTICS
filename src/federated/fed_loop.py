@@ -1,22 +1,63 @@
 import copy
 import random
+from typing import Dict, List
+
 import torch
 
 from federated.comm_cost import estimate_comm_mb_per_round
 
 
-def fedavg_aggregate(global_model, client_states, client_weights):
+def _is_float_tensor(t: torch.Tensor) -> bool:
+    return torch.is_tensor(t) and torch.is_floating_point(t)
+
+
+def fedavg_aggregate(global_model, client_states: List[Dict[str, torch.Tensor]], client_weights: List[float]):
     """
-    Weighted FedAvg on state_dict.
+    Dtype-safe FedAvg aggregation on state_dict.
+
+    Key points (to avoid your Float->Long crash):
+    - For floating-point tensors: weighted average
+    - For non-floating tensors (e.g., BatchNorm num_batches_tracked, integer buffers):
+        do NOT average. Keep a valid value (max for num_batches_tracked, else copy from first client).
+    - Aggregation is performed on CPU to avoid GPU memory spikes.
     """
+    if len(client_states) == 0:
+        raise RuntimeError("[ERROR] No client states provided for aggregation.")
+    if len(client_states) != len(client_weights):
+        raise RuntimeError("[ERROR] client_states and client_weights length mismatch.")
+
+    total_w = float(sum(client_weights))
+    if total_w <= 0:
+        raise RuntimeError("[ERROR] total client weight must be > 0.")
+
     global_state = global_model.state_dict()
-    new_state = {k: torch.zeros_like(v) for k, v in global_state.items()}
+    first_state = client_states[0]
 
-    total_w = sum(client_weights)
-    for state, w in zip(client_states, client_weights):
-        for k in new_state:
-            new_state[k] += state[k] * (w / total_w)
+    new_state = {}
 
+    for k, g_t in global_state.items():
+        # if any client missing key, fallback to global
+        if any(k not in cs for cs in client_states):
+            new_state[k] = g_t.detach().cpu()
+            continue
+
+        # floating -> weighted average
+        if _is_float_tensor(g_t):
+            acc = torch.zeros_like(g_t.detach().cpu())
+            for cs, w in zip(client_states, client_weights):
+                acc += cs[k].detach().cpu().to(acc.dtype) * (float(w) / total_w)
+            new_state[k] = acc
+        else:
+            # non-float -> do not average
+            if "num_batches_tracked" in k:
+                # keep consistent counter: take max across clients
+                vals = [cs[k].detach().cpu().to(torch.long) for cs in client_states]
+                new_state[k] = torch.max(torch.stack(vals, dim=0), dim=0).values
+            else:
+                # copy from first client (or could keep global)
+                new_state[k] = first_state[k].detach().cpu()
+
+    # load back
     global_model.load_state_dict(new_state, strict=True)
     return new_state
 
@@ -31,14 +72,22 @@ def run_fedavg(
     rounds=10,
     client_fraction=1.0,
     amp=True,
-    log_f=None
+    log_f=None,
 ):
+    """
+    Standard FedAvg training loop.
+
+    Requirements:
+    - client_loaders[cid]["update_fn"](model) -> returns avg_loss (float)
+    - client_models are same architecture as global_model
+    """
     num_clients = len(client_models)
     rng = random.Random(42)
 
     records = []
-    for r in range(1, rounds + 1):
-        m = max(1, int(num_clients * client_fraction))
+
+    for r in range(1, int(rounds) + 1):
+        m = max(1, int(num_clients * float(client_fraction)))
         selected = rng.sample(list(range(num_clients)), m)
 
         msg = f"[INFO] Round {r}/{rounds} selected_clients={selected}"
@@ -55,18 +104,21 @@ def run_fedavg(
         # local updates
         client_states = []
         client_weights = []
-
         local_losses = []
+
         for cid in selected:
             loss = client_loaders[cid]["update_fn"](client_models[cid])
-            local_losses.append(loss)
-            client_states.append(copy.deepcopy(client_models[cid].state_dict()))
-            client_weights.append(client_sizes[cid])
+            local_losses.append(float(loss))
 
-        # aggregate
+            # IMPORTANT: detach + cpu to make aggregation stable and light
+            st = {k: v.detach().cpu() for k, v in client_models[cid].state_dict().items()}
+            client_states.append(st)
+            client_weights.append(float(client_sizes[cid]))
+
+        # aggregate (dtype-safe)
         new_state = fedavg_aggregate(global_model, client_states, client_weights)
 
-        # comm cost
+        # comm cost (broadcast + upload)
         comm_total_mb, model_mb = estimate_comm_mb_per_round(new_state, num_clients_participating=len(selected))
 
         # evaluate global model
@@ -74,12 +126,12 @@ def run_fedavg(
 
         rec = {
             "round": r,
-            "val_top1": val_acc1,
-            "val_top5": val_acc5,
-            "avg_local_loss": sum(local_losses) / max(1, len(local_losses)),
-            "clients": len(selected),
-            "model_mb": model_mb,
-            "comm_mb_round": comm_total_mb,
+            "val_top1": float(val_acc1),
+            "val_top5": float(val_acc5),
+            "avg_local_loss": float(sum(local_losses) / max(1, len(local_losses))),
+            "clients": int(len(selected)),
+            "model_mb": float(model_mb),
+            "comm_mb_round": float(comm_total_mb),
         }
         records.append(rec)
 

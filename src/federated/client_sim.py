@@ -1,13 +1,42 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+
+
+def _get_amp_context(device, amp: bool):
+    """
+    Compatible autocast across torch versions.
+    """
+    enabled = bool(amp) and (device.type == "cuda")
+    try:
+        # torch >= 2.0 recommended
+        autocast = torch.amp.autocast
+        return autocast(device_type="cuda", enabled=enabled)
+    except Exception:
+        # fallback
+        return torch.cuda.amp.autocast(enabled=enabled)
+
+
+def _get_scaler(device, amp: bool):
+    enabled = bool(amp) and (device.type == "cuda")
+    if not enabled:
+        return None
+    try:
+        # torch >= 2.0 recommended
+        return torch.amp.GradScaler("cuda")
+    except Exception:
+        return torch.cuda.amp.GradScaler()
 
 
 def client_update(model, loader, device, epochs=1, lr=3e-4, weight_decay=0.01, amp=True):
+    """
+    One client local training step.
+    Returns: avg_loss (float)
+    """
     model.train()
-    opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
-    scaler = torch.cuda.amp.GradScaler(enabled=amp and device.type == "cuda")
+    opt = torch.optim.AdamW(model.parameters(), lr=float(lr), weight_decay=float(weight_decay))
     ce = nn.CrossEntropyLoss()
+
+    scaler = _get_scaler(device, amp)
 
     total_loss = 0.0
     total = 0
@@ -19,7 +48,7 @@ def client_update(model, loader, device, epochs=1, lr=3e-4, weight_decay=0.01, a
 
             opt.zero_grad(set_to_none=True)
 
-            with torch.cuda.amp.autocast(enabled=amp and device.type == "cuda"):
+            with _get_amp_context(device, amp):
                 logits = model(clip)
                 loss = ce(logits, y)
 
@@ -31,9 +60,8 @@ def client_update(model, loader, device, epochs=1, lr=3e-4, weight_decay=0.01, a
                 loss.backward()
                 opt.step()
 
-            bs = y.size(0)
-            total_loss += loss.item() * bs
+            bs = int(y.size(0))
+            total_loss += float(loss.item()) * bs
             total += bs
 
-    avg_loss = total_loss / max(1, total)
-    return avg_loss
+    return total_loss / max(1, total)

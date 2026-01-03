@@ -1,0 +1,21 @@
+[INFO] Round 1/10 selected_clients=[0, 4, 2, 1, 3]
+[INFO] Round 1/10 selected_clients=[0, 4, 2, 1, 3]
+[INFO] Round 1 val_top1=0.5659 val_top5=0.8293 avg_local_loss=1.3107 comm_mb=104.35
+[INFO] Round 2/10 selected_clients=[1, 4, 2, 0, 3]
+[INFO] Round 2 val_top1=0.5859 val_top5=0.8278 avg_local_loss=1.2391 comm_mb=104.35
+[INFO] Round 3/10 selected_clients=[4, 3, 0, 2, 1]
+[INFO] Round 3 val_top1=0.5674 val_top5=0.8252 avg_local_loss=1.1410 comm_mb=104.35
+[INFO] Round 4/10 selected_clients=[1, 4, 2, 0, 3]
+[INFO] Round 4 val_top1=0.5941 val_top5=0.8406 avg_local_loss=1.0957 comm_mb=104.35
+[INFO] Round 5/10 selected_clients=[4, 3, 0, 1, 2]
+[INFO] Round 5 val_top1=0.5848 val_top5=0.8268 avg_local_loss=1.0565 comm_mb=104.35
+[INFO] Round 6/10 selected_clients=[0, 1, 2, 3, 4]
+[INFO] Round 6 val_top1=0.5869 val_top5=0.8375 avg_local_loss=1.0018 comm_mb=104.35
+[INFO] Round 7/10 selected_clients=[2, 1, 0, 3, 4]
+[INFO] Round 7 val_top1=0.5992 val_top5=0.8380 avg_local_loss=0.9291 comm_mb=104.35
+[INFO] Round 8/10 selected_clients=[0, 3, 4, 1, 2]
+[INFO] Round 8 val_top1=0.6125 val_top5=0.8370 avg_local_loss=0.9120 comm_mb=104.35
+[INFO] Round 9/10 selected_clients=[4, 2, 0, 1, 3]
+[INFO] Round 9 val_top1=0.6053 val_top5=0.8370 avg_local_loss=0.8658 comm_mb=104.35
+[INFO] Round 10/10 selected_clients=[3, 0, 2, 1, 4]
+[INFO] Round 10 val_top1=0.5992 val_top5=0.8391 avg_local_loss=0.8450 comm_mb=104.35

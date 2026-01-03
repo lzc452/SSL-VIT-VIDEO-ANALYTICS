@@ -8,26 +8,39 @@ dataset:
 
 model:
   embed_dim: 256
-  init_ckpt: results/finetune/finetune_best.pth # 可选：用已finetune权重初始化全局模型；不存在则随机初始化
+  init_ckpt: results/finetune/two_stage/finetune_epoch_28_top1_0.6715.pth
 
 federated:
   num_clients: 5
   rounds: 10
-  client_fraction: 1.0 # 每轮参与客户端比例（1.0=全部）
+  client_fraction: 1.0
   local_epochs: 1
   batch_size: 16
-  lr: 3e-4
+  lr: 0.0003
   weight_decay: 0.01
 
   non_iid:
     enabled: true
-    strategy: class_shard # class_shard | dirichlet（先实现 class_shard）
-    shards_per_client: 6 # 每个客户端拿到多少个类别分片（越小越 non-IID）
+    strategy: class_shard
+    shards_per_client: 6
     min_samples_per_client: 200
+
+centralized:
+  enabled: true
+  # 若不填，自动使用 rounds * local_epochs
+  epochs: null
+  batch_size: 16
+  lr: 0.0003
+  weight_decay: 0.01
 
 runtime:
   amp: true
 
 output:
   save_dir: results/privacy/federated
-  split_prefix: fed # 生成 split 文件名的前缀
+  split_prefix: fed
+
+system_privacy:
+  # 用“上传原始 clip 到服务器”的粗略估算 vs “FL 只上传模型更新”的通信量对比
+  estimate_raw_upload: true
+  raw_dtype_bytes: 1   # uint8 近似
