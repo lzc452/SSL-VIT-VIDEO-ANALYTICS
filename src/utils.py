@@ -69,3 +69,10 @@ def minmax_norm(values):
     if abs(mx - mn) < 1e-12:
         return [0.0 for _ in v]
     return ((v - mn) / (mx - mn)).tolist()
+
+def save_checkpoint(state, filename):
+    """保存模型权重到指定路径"""
+    filename = Path(filename)
+    filename.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(state, filename)
+    # print(f"[INFO] Checkpoint saved to {filename}") # 可选：启用以确认保存

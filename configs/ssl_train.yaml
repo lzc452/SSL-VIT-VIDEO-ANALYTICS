@@ -7,16 +7,16 @@ training:
   epochs: 200
   batch_size: 48
   learning_rate: 0.0005
-  weight_decay: 0.0001
-  log_interval: 20
-  amp: true
-  save_dir: results/main_ssl_lstm_opt
+  weight_decay: 0.05
   save_every: 10
+  save_dir: results/ema_ssl_vicreg
+  amp: true
   clip_grad_norm: 1.0
-  
-  # 调度器配置
+  log_interval: 20
+  num_workers: 4
+
   scheduler:
-    enabled: true
+    enable: true
     warmup_epochs: 5
     eta_min_ratio: 0.05
 
@@ -27,22 +27,22 @@ model:
   temporal_heads: 4
 
 ssl_objectives:
+  # -------- MFM (Teacher-Student) --------
   mask_ratio: 0.75
   mfm_weight: 1.0
-
-  # TOP 关键：别一上来就硬顶，先 warmup
-  top_weight: 1.0
-  top_weight_schedule:
-    - {start: 1, end: 4, value: 0.0}
-    - {start: 4, end: 7, value: 0.5}
-    - {start: 7, end: 9999, value: 1.0}
-
-  # TOP 扰动强度
-  top_shuffle_ratio: 0.5
-  top_boundary_jitter: 0
-
-  # EMA
   ema_momentum: 0.996
+
+  # VICReg-style variance constraint (anti-collapse)
+  var_weight: 25.0
+  var_eps: 0.0001
+  var_target_std: 1.0
+
+  # -------- TOP (Permutation classification) --------
+  top_weight: 1.0
+  top_start_epoch: 6
+  top_every: 2              # OOM safeguard: run TOP every N steps
+  top_subsample: 0.5        # OOM safeguard: only use a subset of batch for TOP
+  top_detach_backbone: false # if true, TOP only trains head (very stable but weaker)
 
 optimizer:
   type: adamw

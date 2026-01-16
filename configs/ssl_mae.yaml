@@ -1,0 +1,30 @@
+# TinyViT-MAE 112x112 预训练专业配置
+dataset:
+  train_split: "data/splits/UCF101_train.txt" 
+  clip_len: 16
+  stride: 4
+  image_size: 112
+
+model:
+  type: "tiny_vit_21m_variant"
+  embed_dims: [96, 192, 384, 576]
+  decoder_embed_dim: 384
+  decoder_depth: 4
+  decoder_num_heads: 6
+
+ssl:
+  mask_ratio: 0.9          # 核心：90% 高掩码率对抗视频冗余
+  mask_strategy: "tube"    # 时序轨迹掩码
+  norm_pix_loss: true      # 归一化像素 MSE 损失
+
+training:
+  epochs: 200
+  batch_size: 40           
+  accumulation_steps: 2    # 等效总 Batch Size = 32
+  num_workers: 12
+  lr: 0.0005
+  min_lr: 0.000001
+  warmup_epochs: 40
+  weight_decay: 0.05
+  save_dir: "results/tinymae_v1"
+  log_interval: 20
