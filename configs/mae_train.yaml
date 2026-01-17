@@ -1,0 +1,67 @@
+seed: 42
+
+paths:
+  split_root: data/splits
+  log_dir: logs
+  results_dir: results/mae_ssl_v2
+
+dataset:
+  name: UCF101
+  train_split: UCF101_train.txt
+  # (optional) val_split: UCF101_val.txt
+  image_size: 112
+  clip_len: 32
+  stride: 4
+  channels: 3
+
+model:
+  embed_dim: 256
+  encoder_layers: 6
+  encoder_heads: 8
+  encoder_mlp_ratio: 4.0
+  decoder_dim: 192
+  decoder_layers: 4
+  decoder_heads: 6
+  drop: 0.0
+  attn_drop: 0.0
+  stage4_pool: 3   # <- 强制 Stage4 = 3x3 token grid
+
+mae:
+  mask_ratio: 0.90
+  mask_mode: tube   # tube | random
+  loss: mse_token    # token-level MAE
+  # optional VICReg-style stabilizer (默认关，稳定后再开)
+  vicreg_enable: false
+  vicreg_lambda: 1.0
+  vicreg_mu: 1.0
+  vicreg_nu: 0.04
+  vicreg_var_gamma: 1.0
+
+training:
+  epochs: 200
+  batch_size: 32
+  num_workers: 8
+  pin_memory: true
+  amp: true
+  grad_accum: 2
+  clip_grad_norm: 1.0
+
+  optimizer:
+    name: adamw
+    lr: 0.0004
+    weight_decay: 0.05
+    betas: [0.9, 0.95]
+
+  scheduler:
+    enable: true
+    warmup_epochs: 10
+    eta_min_ratio: 0.05
+
+  log_interval: 20
+  save_every: 10
+  keep_last: 3
+
+visualize:
+  enable: true
+  every_epochs: 10
+  max_batches: 2
