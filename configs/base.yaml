@@ -1,18 +1,13 @@
-# configs/base.yaml
-
 seed: 42
-
 device:
   use_cuda: true
   num_workers: 8
   pin_memory: true
-
 dataset:
   backend: frame_lazy
   clip_len: 32
-  stride: 4
+  stride: 2
   image_size: 112
-
 paths:
   data_root: data
   split_root: data/splits

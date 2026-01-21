@@ -3,7 +3,6 @@ set -e
 
 echo "[INFO] Running ablation and sensitivity studies"
 
-python src/train_finetune.py \
-  --config configs/ablation.yaml
+python src/ablations.py
 
 echo "[INFO] Ablation experiments finished"
