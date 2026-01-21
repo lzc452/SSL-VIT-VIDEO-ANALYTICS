@@ -1,78 +1,104 @@
+# src/mae/utils.py
+from __future__ import annotations
+
 import os
 import json
+import hashlib
 import random
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any, Dict, Optional
 
-import numpy as np
 import torch
-import yaml
 
 
 def set_seed(seed: int) -> None:
     random.seed(seed)
-    np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
+
+    # speed-friendly deterministic policy (paper-acceptable)
+    torch.backends.cudnn.deterministic = False
+    torch.backends.cudnn.benchmark = True
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cudnn.allow_tf32 = True
+
+
+def seed_worker(worker_id: int) -> None:
+    """
+    Make DataLoader workers deterministic with the same global seed.
+    """
+    worker_seed = torch.initial_seed() % 2**32
+    random.seed(worker_seed)
+
+
+def make_generator(seed: int) -> torch.Generator:
+    g = torch.Generator()
+    g.manual_seed(int(seed))
+    return g
 
 
 def load_yaml(path: str) -> Dict[str, Any]:
+    import yaml
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
-def ensure_dir(p: str) -> None:
-    Path(p).mkdir(parents=True, exist_ok=True)
+def ensure_dir(path: str) -> None:
+    os.makedirs(path, exist_ok=True)
+
+
+def dump_config(cfg: Dict[str, Any], path: str) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, indent=2, ensure_ascii=False)
+
+
+def config_hash(cfg: Dict[str, Any]) -> str:
+    s = json.dumps(cfg, sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(s.encode("utf-8")).hexdigest()[:12]
 
 
 @dataclass
 class Logger:
-    log_file: str
+    path: str
+
+    def __post_init__(self):
+        os.makedirs(os.path.dirname(self.path), exist_ok=True)
 
     def write(self, msg: str) -> None:
-        print(msg)
-        with open(self.log_file, "a", encoding="utf-8") as f:
-            f.write(msg + "\n")
-
-
-def dump_config(cfg: Dict[str, Any], out_path: str) -> None:
-    with open(out_path, "w", encoding="utf-8") as f:
-        yaml.safe_dump(cfg, f, sort_keys=False, allow_unicode=True)
+        with open(self.path, "a", encoding="utf-8") as f:
+            f.write(msg.rstrip() + "\n")
 
 
 def save_checkpoint(
-    save_path: str,
-    epoch: int,
+    path: str,
     model: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
+    scaler: Optional[torch.amp.GradScaler],
     scheduler: Optional[torch.optim.lr_scheduler._LRScheduler],
-    scaler: Optional[torch.cuda.amp.GradScaler],
-    extra: Optional[Dict[str, Any]] = None,
+    epoch: int,
+    best: Dict[str, Any],
+    cfg: Dict[str, Any],
 ) -> None:
-    obj = {
+    ckpt = {
         "epoch": epoch,
         "model": model.state_dict(),
         "optimizer": optimizer.state_dict(),
-        "scheduler": scheduler.state_dict() if scheduler is not None else None,
-        "scaler": scaler.state_dict() if scaler is not None else None,
+        "scaler": (scaler.state_dict() if scaler is not None else None),
+        "scheduler": (scheduler.state_dict() if scheduler is not None else None),
+        "best": best,
+        "cfg_hash": config_hash(cfg),
     }
-    if extra:
-        obj.update(extra)
-    torch.save(obj, save_path)
+    torch.save(ckpt, path)
 
 
-def keep_last_n_checkpoints(ckpt_dir: str, keep_last: int) -> None:
-    if keep_last <= 0:
+def keep_last_n_checkpoints(out_dir: str, prefix: str, keep: int, suffix: str = ".pth") -> None:
+    files = [f for f in os.listdir(out_dir) if f.startswith(prefix) and f.endswith(suffix)]
+    if len(files) <= keep:
         return
-    p = Path(ckpt_dir)
-    if not p.exists():
-        return
-    ckpts = sorted([x for x in p.glob("*.pth")], key=lambda x: x.stat().st_mtime)
-    if len(ckpts) <= keep_last:
-        return
-    for x in ckpts[:-keep_last]:
+    files.sort(key=lambda x: os.path.getmtime(os.path.join(out_dir, x)))
+    for f in files[:-keep]:
         try:
-            x.unlink()
-        except Exception:
+            os.remove(os.path.join(out_dir, f))
+        except OSError:
             pass

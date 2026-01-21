@@ -218,6 +218,6 @@ def visualize(checkpoint_path, video_path, output_path="visual_results"):
 if __name__ == "__main__":
     # 请根据实际情况修改路径
     visualize(
-        checkpoint_path="results/tinymae_v1/encoder_ep200.pth",   # 你上传的文件名
+        checkpoint_path="results/mae_ssl_v2/checkpoints/mae_ep20.pth",   # 你上传的文件名
         video_path="data/UCF101_frames/ApplyEyeMakeup/v_ApplyEyeMakeup_g01_c01" # 视频帧文件夹
     )

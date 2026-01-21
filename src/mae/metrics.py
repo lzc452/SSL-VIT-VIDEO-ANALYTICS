@@ -1,36 +1,27 @@
-from typing import Dict
-import torch
+# src/mae/metrics.py
+from __future__ import annotations
+
+from typing import Dict, Any
 
 
-@torch.no_grad()
-def diag_stats(pred_tokens: torch.Tensor, target_tokens: torch.Tensor, mask: torch.Tensor) -> Dict[str, float]:
-    """
-    输出一些“塌陷/尺度/可见信息”诊断指标，避免你再被假收敛坑。
-    """
-    # global stats
-    p = pred_tokens
-    t = target_tokens
-
-    out = {}
-    out["pred_abs"] = float(p.abs().mean().item())
-    out["pred_std"] = float(p.std(dim=0).mean().item())
-    out["tgt_abs"] = float(t.abs().mean().item())
-    out["tgt_std"] = float(t.std(dim=0).mean().item())
-
-    vis = (~mask)
-    if vis.any():
-        out["pred_vis_abs"] = float(p[vis].abs().mean().item())
-        out["tgt_vis_abs"] = float(t[vis].abs().mean().item())
+def update_best(best: Dict[str, Any], stats: Dict[str, float], key: str = "loss", mode: str = "min") -> Dict[str, Any]:
+    cur = float(stats.get(key, 1e9))
+    if mode == "min":
+        if cur < float(best.get(key, 1e9)):
+            return {**best, key: cur, "epoch": int(stats.get("epoch", best.get("epoch", 0)))}
+        return best
     else:
-        out["pred_vis_abs"] = 0.0
-        out["tgt_vis_abs"] = 0.0
+        if cur > float(best.get(key, -1e9)):
+            return {**best, key: cur, "epoch": int(stats.get("epoch", best.get("epoch", 0)))}
+        return best
 
-    if mask.any():
-        out["pred_mask_abs"] = float(p[mask].abs().mean().item())
-        out["tgt_mask_abs"] = float(t[mask].abs().mean().item())
-    else:
-        out["pred_mask_abs"] = 0.0
-        out["tgt_mask_abs"] = 0.0
 
-    out["mask_ratio_actual"] = float(mask.float().mean().item())
-    return out
+def format_metrics(epoch: int, stats: Dict[str, float], best: Dict[str, Any]) -> str:
+    return (
+        f"ep={epoch} "
+        f"loss={stats['loss']:.4f} l1={stats['l1']:.4f} l2={stats['l2']:.4f} "
+        f"std_pred={stats['pred_std']:.3f} std_tgt={stats['target_std']:.3f} "
+        f"mask={stats['mask_ratio']:.2f} "
+        f"time={stats['time_sec']:.1f}s "
+        f"best_loss={best.get('loss', 0):.4f}@{best.get('epoch', 0)}"
+    )

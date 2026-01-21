@@ -1,42 +1,65 @@
-from typing import Tuple
+# src/mae/masking.py
+from __future__ import annotations
+
+from typing import Any, Dict, List
+
 import torch
+
+
+def get_mask_ratio(epoch: int, schedule: List[Dict[str, Any]], default: float) -> float:
+    if not schedule:
+        return float(default)
+    for seg in schedule:
+        s = int(seg.get("start", 1))
+        e = int(seg.get("end", 10**9))
+        v = float(seg.get("value", default))
+        if s <= epoch < e:
+            return v
+    return float(default)
 
 
 def make_token_mask(
     B: int,
-    N: int,
-    mask_ratio: float,
-    mode: str,
     T: int,
     tokens_per_frame: int,
+    mask_ratio: float,
+    mode: str,
     device: torch.device,
 ) -> torch.Tensor:
     """
-    Returns mask bool tensor: [B, N] where True means masked.
-    mode:
-      - "random": randomly mask tokens globally
-      - "tube": mask the same spatial token positions across time (per-sample)
-               (i.e., choose k spatial indices in [0..tokens_per_frame-1], apply to all frames)
+    Return:
+      mask: [B, N] bool, True means masked
+      N = T * tokens_per_frame
     """
-    k = max(1, int(N * mask_ratio))
+    P = tokens_per_frame
+    N = T * P
+    num_mask = max(1, int(round(N * mask_ratio)))
 
     if mode == "random":
         mask = torch.zeros((B, N), dtype=torch.bool, device=device)
         for b in range(B):
-            idx = torch.randperm(N, device=device)[:k]
+            idx = torch.randperm(N, device=device)[:num_mask]
             mask[b, idx] = True
         return mask
 
     if mode == "tube":
-        # choose spatial indices, repeat across time
-        k_spatial = max(1, int(tokens_per_frame * mask_ratio))
+        # tube: choose spatial tokens, apply across all frames
+        # per-frame masked count = round(P * mask_ratio)
+        m_pf = max(1, int(round(P * mask_ratio)))
         mask = torch.zeros((B, N), dtype=torch.bool, device=device)
         for b in range(B):
-            sidx = torch.randperm(tokens_per_frame, device=device)[:k_spatial]  # [k_spatial]
-            # expand to all frames
-            # token index = t * tokens_per_frame + s
-            tidx = (torch.arange(T, device=device).unsqueeze(1) * tokens_per_frame + sidx.unsqueeze(0)).reshape(-1)
-            mask[b, tidx] = True
+            sidx = torch.randperm(P, device=device)[:m_pf]  # spatial indices
+            # broadcast across time
+            for t in range(T):
+                mask[b, t * P + sidx] = True
         return mask
 
-    raise ValueError(f"Unknown mask mode: {mode}")
+    raise ValueError(f"Unknown mask_mode: {mode}")
+
+
+def count_masked(mask: torch.Tensor) -> int:
+    return int(mask.sum().item())
+
+
+def count_visible(mask: torch.Tensor) -> int:
+    return int((~mask).sum().item())
