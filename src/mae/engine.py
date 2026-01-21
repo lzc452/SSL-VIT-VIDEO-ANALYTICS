@@ -1,129 +1,162 @@
-import math
+# src/mae/engine.py
+from __future__ import annotations
+
 import time
-from typing import Any, Dict, Optional
+from typing import Dict, Any
 
 import torch
-from torch.utils.data import DataLoader
+import torch.nn as nn
 
-from .masking import make_token_mask
-from .losses import total_loss
-from .metrics import diag_stats
-
-
-def build_scheduler(cfg: Dict[str, Any], optimizer: torch.optim.Optimizer, steps_per_epoch: int):
-    scfg = cfg.get("training", {}).get("scheduler", {})
-    if not scfg or not scfg.get("enable", True):
-        return None
-
-    warmup_epochs = int(scfg.get("warmup_epochs", 10))
-    eta_min_ratio = float(scfg.get("eta_min_ratio", 0.05))
-    epochs = int(cfg["training"]["epochs"])
-
-    warmup_steps = max(1, warmup_epochs * steps_per_epoch)
-    total_steps = max(warmup_steps + 1, epochs * steps_per_epoch)
-
-    base_lr = optimizer.param_groups[0]["lr"]
-    eta_min = base_lr * eta_min_ratio
-
-    def lr_lambda(step: int):
-        if step < warmup_steps:
-            return float(step) / float(max(1, warmup_steps))
-        t = (step - warmup_steps) / float(max(1, total_steps - warmup_steps))
-        return (eta_min / base_lr) + 0.5 * (1.0 - (eta_min / base_lr)) * (1.0 + math.cos(math.pi * t))
-
-    return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_lambda)
+from .masking import get_mask_ratio, make_token_mask, count_masked, count_visible
+from .losses import mae_recon_loss, reconstruction_error_stats
 
 
 def train_one_epoch(
     epoch: int,
-    model: torch.nn.Module,
-    loader: DataLoader,
+    model: nn.Module,
+    loader,
     optimizer: torch.optim.Optimizer,
-    scheduler: Optional[torch.optim.lr_scheduler._LRScheduler],
-    scaler: Optional[torch.cuda.amp.GradScaler],
+    scaler: torch.amp.GradScaler | None,
+    scheduler,
     device: torch.device,
     cfg: Dict[str, Any],
     logger,
-):
+) -> Dict[str, float]:
     model.train()
 
-    tr = cfg["training"]
-    mae_cfg = cfg["mae"]
-    mcfg = cfg["model"]
+    training = cfg.get("training", {})
+    mae_cfg = cfg.get("mae", {})
+    model_cfg = cfg.get("model", {})
 
-    amp_enabled = bool(tr.get("amp", False) and device.type == "cuda")
-    grad_accum = int(tr.get("grad_accum", 1))
-    clip_norm = float(tr.get("clip_grad_norm", 1.0))
-    log_interval = int(tr.get("log_interval", 20))
+    log_interval = int(training.get("log_interval", 20))
+    grad_clip = float(training.get("grad_clip", 1.0))
+    grad_accum = int(training.get("grad_accum", 1))
+    amp = bool(training.get("amp", True))
 
-    mask_ratio = float(mae_cfg.get("mask_ratio", 0.9))
+    stage4_pool = int(model_cfg.get("stage4_pool", 3))
+    tokens_per_frame = stage4_pool * stage4_pool
+
     mask_mode = str(mae_cfg.get("mask_mode", "tube"))
+    schedule = mae_cfg.get("mask_ratio_schedule", [])
+    default_mask = float(mae_cfg.get("mask_ratio", 0.8))
+    mask_ratio = get_mask_ratio(epoch, schedule, default_mask)
 
-    tokens_per_frame = int((mcfg.get("stage4_pool", 3)) ** 2)
-    T = int(cfg["dataset"]["clip_len"])
+    loss_type = str(mae_cfg.get("loss_type", "l2"))
+    normalize_target = bool(mae_cfg.get("normalize_target", True))
+
+    # meters
+    n_steps = 0
+    loss_sum = 0.0
+    l1_sum = 0.0
+    l2_sum = 0.0
+    pred_std_sum = 0.0
+    tgt_std_sum = 0.0
 
     t0 = time.time()
-    total = 0.0
+    data_t = 0.0
+    iter_t = 0.0
+    last = time.time()
 
     optimizer.zero_grad(set_to_none=True)
 
     for step, clip in enumerate(loader):
-        clip = clip.to(device, non_blocking=True)  # [B,C,T,H,W]
-        B = clip.shape[0]
-        N = T * tokens_per_frame
+        now = time.time()
+        data_t += (now - last)
+
+        clip = clip.to(device, non_blocking=True)  # [C,T,H,W] or [B,C,T,H,W]?
+        if clip.dim() == 4:
+            clip = clip.unsqueeze(0)
+        # ensure [B,C,T,H,W]
+        if clip.dim() != 5:
+            raise RuntimeError(f"Expected clip dim=5, got {clip.shape}")
+
+        B = clip.size(0)
+        T = clip.size(2)
 
         token_mask = make_token_mask(
             B=B,
-            N=N,
-            mask_ratio=mask_ratio,
-            mode=mask_mode,
             T=T,
             tokens_per_frame=tokens_per_frame,
+            mask_ratio=mask_ratio,
+            mode=mask_mode,
             device=device,
         )
 
-        with torch.amp.autocast(device_type="cuda", enabled=amp_enabled):
-            pred, target = model(clip, token_mask)
-            loss, lstat = total_loss(pred, target, token_mask, cfg.get("mae", {}))
+        with torch.amp.autocast(device_type="cuda", enabled=amp):
+            pred, target = model(clip, token_mask=token_mask, stage4_pool=stage4_pool)
+            loss = mae_recon_loss(pred, target, loss_type=loss_type, normalize_target=normalize_target)
 
-            loss = loss / float(grad_accum)
+        if not torch.isfinite(loss):
+            logger.write(f"[WARN] epoch={epoch} step={step} loss is not finite: {float(loss)} -> skip step")
+            optimizer.zero_grad(set_to_none=True)
+            last = time.time()
+            continue
 
-        if scaler is not None and amp_enabled:
-            scaler.scale(loss).backward()
+        # gradient accumulation
+        loss_scaled = loss / float(grad_accum)
+
+        if scaler is not None and amp:
+            scaler.scale(loss_scaled).backward()
         else:
-            loss.backward()
+            loss_scaled.backward()
 
-        if (step + 1) % grad_accum == 0:
-            if scaler is not None and amp_enabled:
-                scaler.unscale_(optimizer)
-                if clip_norm > 0:
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=clip_norm)
+        do_step = ((step + 1) % grad_accum == 0)
+        if do_step:
+            if grad_clip > 0:
+                if scaler is not None and amp:
+                    scaler.unscale_(optimizer)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
+
+            if scaler is not None and amp:
                 scaler.step(optimizer)
                 scaler.update()
             else:
-                if clip_norm > 0:
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=clip_norm)
                 optimizer.step()
 
             optimizer.zero_grad(set_to_none=True)
             if scheduler is not None:
                 scheduler.step()
 
-        total += float(loss.item()) * float(grad_accum)
+        # stats
+        stats = reconstruction_error_stats(pred, target)
+        loss_sum += float(loss.detach().item())
+        l1_sum += float(stats["l1"])
+        l2_sum += float(stats["l2"])
+        pred_std_sum += float(stats["pred_std"])
+        tgt_std_sum += float(stats["target_std"])
+        n_steps += 1
 
-        if (step + 1) % log_interval == 0:
-            lr_now = optimizer.param_groups[0]["lr"]
-            d = diag_stats(pred.detach(), target.detach(), token_mask.detach())
+        iter_t += (time.time() - now)
+        last = time.time()
+
+        if (step % log_interval) == 0:
+            lr = optimizer.param_groups[0]["lr"]
             msg = (
-                f"[MAE] ep={epoch} step={step+1}/{len(loader)} "
-                f"lr={lr_now:.3e} "
-                f"loss={total/(step+1):.4f} "
-                f"mae={lstat.get('loss_mae', 0.0):.4f} "
-                f"mask={d['mask_ratio_actual']:.2f} "
-                f"pred_std={d['pred_std']:.3e} tgt_std={d['tgt_std']:.3e} "
-                f"pred_abs={d['pred_abs']:.3e} tgt_abs={d['tgt_abs']:.3e}"
+                f"ep={epoch} step={step}/{len(loader)} "
+                f"lr={lr:.6g} "
+                f"loss={float(loss.detach().item()):.4f} "
+                f"l1={stats['l1']:.4f} l2={stats['l2']:.4f} "
+                f"std_pred={stats['pred_std']:.3f} std_tgt={stats['target_std']:.3f} "
+                f"mask={mask_ratio:.2f} tokens(vis={count_visible(token_mask)},mask={count_masked(token_mask)}) "
+                f"t_data={data_t:.2f}s t_iter={iter_t:.2f}s"
             )
+            # collapse hint
+            if stats["pred_std"] < 0.05:
+                msg += " [WARN:pred_std_low]"
             logger.write(msg)
+            data_t = 0.0
+            iter_t = 0.0
 
-    dt = time.time() - t0
-    logger.write(f"[MAE] Epoch done. ep={epoch} avg_loss={total/max(1,len(loader)):.4f} time={dt:.1f}s")
+    t1 = time.time()
+    if n_steps == 0:
+        return {"loss": 1e9, "l1": 1e9, "l2": 1e9, "pred_std": 0.0, "target_std": 0.0, "mask_ratio": mask_ratio, "time_sec": t1 - t0}
+
+    return {
+        "loss": loss_sum / n_steps,
+        "l1": l1_sum / n_steps,
+        "l2": l2_sum / n_steps,
+        "pred_std": pred_std_sum / n_steps,
+        "target_std": tgt_std_sum / n_steps,
+        "mask_ratio": mask_ratio,
+        "time_sec": t1 - t0,
+    }

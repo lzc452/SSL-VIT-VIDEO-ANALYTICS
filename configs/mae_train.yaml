@@ -1,67 +1,67 @@
+# configs/ssl_mae.yaml
 seed: 42
 
-paths:
-  split_root: data/splits
-  log_dir: logs
-  results_dir: results/mae_ssl_v2
-
 dataset:
-  name: UCF101
-  train_split: UCF101_train.txt
-  # (optional) val_split: UCF101_val.txt
+  train_split: "data/splits/UCF101_train.txt"
   image_size: 112
   clip_len: 32
   stride: 4
   channels: 3
-
-model:
-  embed_dim: 256
-  encoder_layers: 6
-  encoder_heads: 8
-  encoder_mlp_ratio: 4.0
-  decoder_dim: 192
-  decoder_layers: 4
-  decoder_heads: 6
-  drop: 0.0
-  attn_drop: 0.0
-  stage4_pool: 3   # <- 强制 Stage4 = 3x3 token grid
-
-mae:
-  mask_ratio: 0.90
-  mask_mode: tube   # tube | random
-  loss: mse_token    # token-level MAE
-  # optional VICReg-style stabilizer (默认关，稳定后再开)
-  vicreg_enable: false
-  vicreg_lambda: 1.0
-  vicreg_mu: 1.0
-  vicreg_nu: 0.04
-  vicreg_var_gamma: 1.0
+  mean: [0.485, 0.456, 0.406]
+  std:  [0.229, 0.224, 0.225]
+  augment: true
 
 training:
   epochs: 200
-  batch_size: 32
-  num_workers: 8
+  batch_size: 256
+  num_workers: 16
   pin_memory: true
+  persistent_workers: true
+  prefetch_factor: 4
+
   amp: true
-  grad_accum: 2
+  tf32: true
+  cudnn_benchmark: true
+
+  grad_accum: 1
   clip_grad_norm: 1.0
 
-  optimizer:
-    name: adamw
-    lr: 0.0004
-    weight_decay: 0.05
-    betas: [0.9, 0.95]
+  lr: 0.0003
+  min_lr: 0.000001
+  weight_decay: 0.05
+  betas: [0.9, 0.95]
+  lr_schedule: "cosine"
+  warmup_epochs: 10
 
-  scheduler:
-    enable: true
-    warmup_epochs: 10
-    eta_min_ratio: 0.05
-
+  save_every: 5
+  keep_last: 5
   log_interval: 20
-  save_every: 10
-  keep_last: 3
+
+output:
+  dir: "results/mae_ucf101_tinyvit112_s3"
+
+mae:
+  stage4_pool: 3            # 3x3 tokens per frame => 9
+  mask_mode: "tube"
+  mask_ratio: 0.80
+  mask_ratio_schedule:
+    - {start: 1,   end: 21,  value: 0.70}
+    - {start: 21,  end: 81,  value: 0.80}
+    - {start: 81,  end: 100000, value: 0.90}
+
+  loss_type: "l2"
+  normalize_target: true
+
+model:
+  backbone: "tiny_vit_21m_224"
+  pretrained: ""            # 留空表示不加载外部权重（你也可填本地pth）
+  decoder_dim: 512
+  decoder_depth: 2
+  decoder_num_heads: 8
+  decoder_mlp_ratio: 4.0
+  drop_rate: 0.0
+  attn_drop_rate: 0.0
 
 visualize:
-  enable: true
-  every_epochs: 10
-  max_batches: 2
+  every: 10
+  max_samples: 2
